@@ -2,40 +2,39 @@ import { useState, useEffect, useRef } from "react";
 import {
   fetchPolymarketEvents,
   fetchPolymarketP2PScenarios,
-  rollForwardDate,
-} from "./services/polymarket.js";
+  rollForwardDate } from "./services/polymarket.js";
 
 // ─── SVG LOGO ────────────────────────────────────────────────────────────────
 const PuntHubLogo = ({ size = 40, showText = true }) => (
   <svg viewBox="0 0 200 52" height={size} style={{ display: "block" }} xmlns="http://www.w3.org/2000/svg">
     {/* Icon - dartboard-style target */}
-    <circle cx="26" cy="26" r="24" fill="#FF6B35" />
+    <circle cx="26" cy="26" r="24" fill="#4361EE" />
     <circle cx="26" cy="26" r="16" fill="rgba(0,0,0,0.25)" />
     <circle cx="26" cy="26" r="9" fill="rgba(255,255,255,0.2)" />
-    <circle cx="26" cy="26" r="4" fill="#FFD700" />
+    <circle cx="26" cy="26" r="4" fill="#fff" />
     {/* Arrow */}
     <line x1="38" y1="14" x2="26" y2="26" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
     <polygon points="40,11 34,13 38,17" fill="#fff"/>
     {showText && <>
-      {/* punt - light */}
-      <text x="56" y="36" fontFamily="'Barlow Condensed', 'Oswald', sans-serif" fontWeight="700" fontSize="28" fill="#b9b9c3" letterSpacing="1">punt</text>
-      {/* hub - dark */}
-      <text x="101" y="36" fontFamily="'Barlow Condensed', 'Oswald', sans-serif" fontWeight="800" fontSize="28" fill="#253238" letterSpacing="1">hub</text>
+      {/* punt - medium */}
+      <text x="56" y="36" fontFamily="'Inter', sans-serif" fontWeight="600" fontSize="26" fill="#4361EE" letterSpacing="0.5">punt</text>
+      {/* hub - bold */}
+      <text x="101" y="36" fontFamily="'Inter', sans-serif" fontWeight="800" fontSize="26" fill="#0A0A2E" letterSpacing="0.5">hub</text>
     </>}
   </svg>
 );
 
 const PuntHubLogoDark = ({ size = 40, showText = true }) => (
   <svg viewBox="0 0 200 52" height={size} style={{ display: "block" }} xmlns="http://www.w3.org/2000/svg">
-    <circle cx="26" cy="26" r="24" fill="#FF6B35" />
+    <circle cx="26" cy="26" r="24" fill="#4361EE" />
     <circle cx="26" cy="26" r="16" fill="rgba(0,0,0,0.25)" />
     <circle cx="26" cy="26" r="9" fill="rgba(255,255,255,0.2)" />
-    <circle cx="26" cy="26" r="4" fill="#FFD700" />
+    <circle cx="26" cy="26" r="4" fill="#fff" />
     <line x1="38" y1="14" x2="26" y2="26" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
     <polygon points="40,11 34,13 38,17" fill="#fff"/>
     {showText && <>
-      <text x="56" y="36" fontFamily="'Barlow Condensed', 'Oswald', sans-serif" fontWeight="700" fontSize="28" fill="rgba(255,255,255,0.6)" letterSpacing="1">punt</text>
-      <text x="101" y="36" fontFamily="'Barlow Condensed', 'Oswald', sans-serif" fontWeight="800" fontSize="28" fill="#fff" letterSpacing="1">hub</text>
+      <text x="56" y="36" fontFamily="'Inter', sans-serif" fontWeight="600" fontSize="26" fill="rgba(255,255,255,0.7)" letterSpacing="0.5">punt</text>
+      <text x="101" y="36" fontFamily="'Inter', sans-serif" fontWeight="800" fontSize="26" fill="#fff" letterSpacing="0.5">hub</text>
     </>}
   </svg>
 );
@@ -43,7 +42,7 @@ const PuntHubLogoDark = ({ size = 40, showText = true }) => (
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const CATEGORIES = [
   { id: "sports", label: "Sports", icon: "⚽", color: "#00E5FF" },
-  { id: "politics", label: "Politics", icon: "🏛️", color: "#FF6B35" },
+  { id: "politics", label: "Politics", icon: "🏛️", color: "#E84855" },
   { id: "crypto", label: "Crypto", icon: "₿", color: "#FFD700" },
   { id: "tech", label: "Tech", icon: "🤖", color: "#A855F7" },
   { id: "music", label: "Music", icon: "🎵", color: "#EC4899" },
@@ -163,7 +162,7 @@ function PredictionCard({ event, onPredict, userPredictions }) {
   const [showVotes, setShowVotes] = useState(userPredictions[event.id] !== undefined);
   const cat = CATEGORIES.find(c => c.id === event.cat);
   const totalVotes = event.votes.reduce((a, b) => a + b, 0);
-  const diffColor = { Easy: "#34D399", Medium: "#FFD700", Hard: "#FF6B35" }[event.difficulty];
+  const diffColor = { Easy: "#34D399", Medium: "#FFD700", Hard: "#4361EE" }[event.difficulty];
   const daysLeft = Math.ceil((new Date(event.ends) - new Date()) / 86400000);
 
   return (
@@ -174,18 +173,17 @@ function PredictionCard({ event, onPredict, userPredictions }) {
       padding: "16px",
       position: "relative",
       overflow: "hidden",
-      transition: "transform 0.2s, box-shadow 0.2s",
-    }}>
+      transition: "transform 0.2s, box-shadow 0.2s" }}>
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${cat.color}, transparent)` }} />
       {event.trending && (
-        <div style={{ position: "absolute", top: 10, right: 10, background: "#FF6B35", color: "#fff", fontSize: 9, fontWeight: 800, padding: "2px 7px", borderRadius: 20, letterSpacing: 1 }}>🔥 TRENDING</div>
+        <div style={{ position: "absolute", top: 10, right: 10, background: "#4361EE", color: "#fff", fontSize: 9, fontWeight: 800, padding: "2px 7px", borderRadius: 20, letterSpacing: 1 }}>🔥 TRENDING</div>
       )}
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, paddingRight: event.trending ? 80 : 0 }}>
         <span style={{ fontSize: 16 }}>{cat.icon}</span>
         <span style={{ color: cat.color, fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>{cat.label}</span>
         <span style={{ marginLeft: "auto", color: diffColor, fontSize: 9, fontWeight: 700, border: `1px solid ${diffColor}44`, padding: "2px 7px", borderRadius: 20 }}>{event.difficulty}</span>
       </div>
-      <h3 style={{ fontSize: 14, fontWeight: 800, color: "#fff", marginBottom: 5, lineHeight: 1.3, fontFamily: "'Barlow Condensed', 'Oswald', sans-serif", letterSpacing: 0.5 }}>{event.title}</h3>
+      <h3 style={{ fontSize: 14, fontWeight: 800, color: "#fff", marginBottom: 5, lineHeight: 1.3, letterSpacing: 0.5 }}>{event.title}</h3>
       <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginBottom: 12, lineHeight: 1.5 }}>{event.desc}</p>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 12 }}>
         {event.options.map((opt, i) => {
@@ -202,9 +200,7 @@ function PredictionCard({ event, onPredict, userPredictions }) {
               fontSize: 11, fontWeight: 700,
               cursor: selected !== null ? "default" : "pointer",
               textAlign: "left", position: "relative", overflow: "hidden",
-              transition: "all 0.2s",
-              fontFamily: "'Barlow Condensed', 'Oswald', sans-serif",
-            }}>
+              transition: "all 0.2s" }}>
               {showVotes && <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, background: `${cat.color}18`, width: `${pct}%`, transition: "width 0.8s ease" }} />}
               <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", gap: 4 }}>
                 <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{opt}</span>
@@ -221,7 +217,7 @@ function PredictionCard({ event, onPredict, userPredictions }) {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,215,0,0.1)", border: "1px solid rgba(255,215,0,0.3)", borderRadius: 20, padding: "3px 10px" }}>
           <span style={{ fontSize: 11 }}>🏆</span>
-          <span style={{ color: "#FFD700", fontWeight: 800, fontSize: 13, fontFamily: "'Barlow Condensed', 'Oswald', sans-serif" }}>{event.points.toLocaleString()} PP</span>
+          <span style={{ color: "#FFD700", fontWeight: 800, fontSize: 13 }}>{event.points.toLocaleString()} PP</span>
         </div>
       </div>
     </div>
@@ -235,8 +231,8 @@ function ForumPost({ post }) {
   return (
     <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "14px 16px", display: "flex", gap: 12 }}>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, minWidth: 36 }}>
-        <button onClick={() => setUpvoted(!upvoted)} style={{ background: "none", border: "none", color: upvoted ? "#FF6B35" : "rgba(255,255,255,0.3)", fontSize: 16, cursor: "pointer", padding: 0 }}>▲</button>
-        <span style={{ color: upvoted ? "#FF6B35" : "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 700, fontFamily: "'Barlow Condensed', 'Oswald', sans-serif" }}>{(post.upvotes + (upvoted ? 1 : 0)).toLocaleString()}</span>
+        <button onClick={() => setUpvoted(!upvoted)} style={{ background: "none", border: "none", color: upvoted ? "#4361EE" : "rgba(255,255,255,0.3)", fontSize: 16, cursor: "pointer", padding: 0 }}>▲</button>
+        <span style={{ color: upvoted ? "#4361EE" : "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 700 }}>{(post.upvotes + (upvoted ? 1 : 0)).toLocaleString()}</span>
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5, flexWrap: "wrap" }}>
@@ -245,7 +241,7 @@ function ForumPost({ post }) {
           <span style={{ color: cat?.color, fontSize: 9, fontWeight: 700, border: `1px solid ${cat?.color}44`, padding: "1px 6px", borderRadius: 20 }}>{post.flair}</span>
           <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 10, marginLeft: "auto" }}>{post.time}</span>
         </div>
-        <h4 style={{ color: "#fff", fontWeight: 700, fontSize: 13, marginBottom: 5, fontFamily: "'Barlow Condensed', 'Oswald', sans-serif", letterSpacing: 0.3, lineHeight: 1.3 }}>{post.title}</h4>
+        <h4 style={{ color: "#fff", fontWeight: 700, fontSize: 13, marginBottom: 5, letterSpacing: 0.3, lineHeight: 1.3 }}>{post.title}</h4>
         <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{post.body}</p>
         <div style={{ marginTop: 8, display: "flex", gap: 12 }}>
           <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 10 }}>💬 {post.comments}</span>
@@ -253,6 +249,159 @@ function ForumPost({ post }) {
           <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 10, cursor: "pointer" }}>🔖 Save</span>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── LANDING PAGE ─────────────────────────────────────────────────────────────
+const LANDING_STATS = [
+  ["80+", "Live Events"],
+  ["10k+", "Community Members"],
+  ["500+", "Rewards Redeemed"],
+  ["#1", "SA Prediction Hub"],
+];
+
+function LandingPage({ onStart }) {
+  return (
+    <div style={{ minHeight: "100vh", minHeight: "100dvh", background: "#f4f5f7", fontFamily: "'Inter', sans-serif", color: "#0A0A2E", overflowX: "hidden" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: #f4f5f7; } ::-webkit-scrollbar-thumb { background: #c7c9d9; border-radius: 2px; }
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+        .landing-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(67,97,238,0.12); transition: all 0.25s ease; }
+        .landing-card { transition: all 0.25s ease; }
+        .cta-btn:hover { background: #3451d1 !important; }
+      `}</style>
+
+      {/* ── Navigation ── */}
+      <nav style={{ background: "#fff", borderBottom: "1px solid #e8e9f0", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
+        <PuntHubLogo size={38} />
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <a href="#how-it-works" style={{ color: "#5a5b7a", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>How It Works</a>
+          <a href="#features" style={{ color: "#5a5b7a", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Features</a>
+          <button onClick={onStart} style={{ background: "#0A0A2E", color: "#fff", border: "none", borderRadius: 8, padding: "9px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer", letterSpacing: 0.3 }}>
+            Sign Up Free →
+          </button>
+        </div>
+      </nav>
+
+      {/* ── Hero ── */}
+      <section style={{ padding: "72px 24px 64px", textAlign: "center", maxWidth: 820, margin: "0 auto", animation: "fadeInUp 0.5s ease" }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(67,97,238,0.08)", border: "1px solid rgba(67,97,238,0.2)", borderRadius: 20, padding: "5px 14px", marginBottom: 24 }}>
+          <span style={{ fontSize: 14 }}>🎯</span>
+          <span style={{ color: "#4361EE", fontSize: 12, fontWeight: 600, letterSpacing: 0.5 }}>THE WORLD'S MOST REWARDING PREDICTION COMMUNITY</span>
+        </div>
+        <h1 style={{ fontSize: "clamp(36px, 6vw, 64px)", fontWeight: 800, lineHeight: 1.1, marginBottom: 20, color: "#0A0A2E", letterSpacing: "-0.5px" }}>
+          Predict. Win.{" "}
+          <span style={{ color: "#4361EE" }}>Earn Real Rewards.</span>
+        </h1>
+        <p style={{ fontSize: 18, color: "#5a5b7a", lineHeight: 1.7, maxWidth: 560, margin: "0 auto 36px", fontWeight: 400 }}>
+          PuntHub is South Africa's premier prediction hub — aggregate all betting platforms, compete on live prediction markets, and redeem PuntPoints for real prizes.
+        </p>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+          <button onClick={onStart} className="cta-btn" style={{ background: "#4361EE", color: "#fff", border: "none", borderRadius: 10, padding: "15px 32px", fontSize: 16, fontWeight: 700, cursor: "pointer", letterSpacing: 0.3, boxShadow: "0 4px 20px rgba(67,97,238,0.35)" }}>
+            Join Now — Become A Founding Member
+          </button>
+          <a href="#how-it-works" style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#fff", color: "#0A0A2E", border: "1px solid #e0e1ea", borderRadius: 10, padding: "15px 28px", fontSize: 16, fontWeight: 600, cursor: "pointer", textDecoration: "none" }}>
+            See How It Works ↓
+          </a>
+        </div>
+        {/* Stats row */}
+        <div style={{ display: "flex", gap: 40, justifyContent: "center", marginTop: 56, flexWrap: "wrap" }}>
+          {LANDING_STATS.map(([val, label]) => (
+            <div key={label} style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: "#4361EE" }}>{val}</div>
+              <div style={{ fontSize: 13, color: "#8889a8", fontWeight: 500, marginTop: 2 }}>{label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── How It Works ── */}
+      <section id="how-it-works" style={{ background: "#fff", padding: "64px 24px" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <h2 style={{ fontSize: 34, fontWeight: 800, color: "#0A0A2E", marginBottom: 10 }}>How It Works</h2>
+            <p style={{ color: "#5a5b7a", fontSize: 16 }}>Three simple steps to start winning</p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 24 }}>
+            {[
+              { icon: "🔍", title: "Explore", color: "#4361EE", bg: "rgba(67,97,238,0.06)", border: "rgba(67,97,238,0.15)", desc: "Browse 80+ live prediction markets across sports, crypto, politics, tech & more. Real-time markets powered by Polymarket." },
+              { icon: "🎯", title: "Predict", color: "#7B2FBE", bg: "rgba(123,47,190,0.06)", border: "rgba(123,47,190,0.15)", desc: "Make your predictions and earn PuntPoints. The more accurate your picks, the higher you climb the leaderboard." },
+              { icon: "🏆", title: "Win", color: "#0CB96A", bg: "rgba(12,185,106,0.06)", border: "rgba(12,185,106,0.15)", desc: "Redeem PuntPoints for Amazon gift cards, Netflix, Spotify, exclusive merch, and sponsored giveaways." },
+            ].map(item => (
+              <div key={item.title} className="landing-card" style={{ background: item.bg, border: `1px solid ${item.border}`, borderRadius: 16, padding: "28px 24px" }}>
+                <div style={{ width: 52, height: 52, background: "#fff", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, marginBottom: 18, boxShadow: `0 4px 16px ${item.border}` }}>
+                  {item.icon}
+                </div>
+                <h3 style={{ fontSize: 22, fontWeight: 700, color: item.color, marginBottom: 8 }}>{item.title}</h3>
+                <p style={{ color: "#5a5b7a", fontSize: 14, lineHeight: 1.6 }}>{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Getting Started / Features ── */}
+      <section id="features" style={{ padding: "64px 24px", background: "#f4f5f7" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <h2 style={{ fontSize: 34, fontWeight: 800, color: "#0A0A2E", marginBottom: 10 }}>Everything In One Place</h2>
+            <p style={{ color: "#5a5b7a", fontSize: 16 }}>All the features you need to predict, compete and win</p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 16 }}>
+            {[
+              { icon: "📈", label: "Prediction Markets", badge: "POPULAR", badgeColor: "#4361EE", desc: "80+ live events across 16 categories powered by real market data.", href: "#" },
+              { icon: "🤖", label: "AI Insights", badge: "PREMIUM", badgeColor: "#7B2FBE", desc: "AI-powered predictions and insights to inform your picks.", href: "#" },
+              { icon: "💬", label: "Community Forum", badge: "FEATURED", badgeColor: "#0CB96A", desc: "Discuss predictions with thousands of like-minded punters.", href: "#" },
+              { icon: "⚔️", label: "P2P Betting", badge: "NEW", badgeColor: "#E84855", desc: "Bet directly against friends with PuntCoins. Winner takes all.", href: "#" },
+              { icon: "🛍️", label: "Rewards Store", badge: "FEATURED", badgeColor: "#F59E0B", desc: "Redeem points for gift cards, streaming, merch and more.", href: "#" },
+              { icon: "🏅", label: "Leaderboard", badge: "LIVE", badgeColor: "#0CB96A", desc: "Compete with top predictors. Earn badges and bonus points.", href: "#" },
+            ].map(card => (
+              <div key={card.label} className="landing-card" style={{ background: "#fff", border: "1px solid #e8e9f0", borderRadius: 14, padding: "22px 18px", cursor: "pointer" }} onClick={onStart}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                  <span style={{ fontSize: 28 }}>{card.icon}</span>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 15, color: "#0A0A2E" }}>{card.label}</div>
+                    <span style={{ background: card.badgeColor, color: "#fff", fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 20, letterSpacing: 0.5 }}>{card.badge}</span>
+                  </div>
+                </div>
+                <p style={{ color: "#5a5b7a", fontSize: 13, lineHeight: 1.5 }}>{card.desc}</p>
+                <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 5, color: "#4361EE", fontSize: 13, fontWeight: 600 }}>
+                  <span>Explore</span><span>→</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Join CTA ── */}
+      <section style={{ background: "#0A0A2E", padding: "72px 24px", textAlign: "center" }}>
+        <div style={{ maxWidth: 600, margin: "0 auto" }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>🎯</div>
+          <h2 style={{ fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 12 }}>
+            Join Our Community Today
+          </h2>
+          <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 16, lineHeight: 1.6, marginBottom: 32 }}>
+            Sign up as a founding member and receive 500 PuntPoints instantly. Start predicting and climb the leaderboard.
+          </p>
+          <button onClick={onStart} className="cta-btn" style={{ background: "#4361EE", color: "#fff", border: "none", borderRadius: 10, padding: "16px 36px", fontSize: 17, fontWeight: 700, cursor: "pointer", letterSpacing: 0.3, boxShadow: "0 4px 24px rgba(67,97,238,0.4)" }}>
+            Get Started — It's Free
+          </button>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer style={{ background: "#080818", padding: "24px", textAlign: "center" }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+          <PuntHubLogoDark size={32} />
+        </div>
+        <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 12 }}>
+          © 2025 PuntHub · <a href="#" style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>Privacy</a> · <a href="#" style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>Terms</a>
+        </p>
+      </footer>
     </div>
   );
 }
@@ -279,19 +428,19 @@ function Onboarding({ onComplete }) {
   const basePoints = 500;
 
   return (
-    <div style={{ minHeight: "100vh", minHeight: "100dvh", background: "#0A0A0F", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px", fontFamily: "'Barlow Condensed', 'Oswald', sans-serif", overflowX: "hidden", boxSizing: "border-box" }}>
+    <div style={{ minHeight: "100vh", minHeight: "100dvh", background: "#0A0A0F", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px", fontFamily: "'Inter', sans-serif", overflowX: "hidden", boxSizing: "border-box" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         ::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-track { background: #0A0A0F; } ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
         @keyframes floatUp { 0% { opacity:1; transform:translateX(-50%) translateY(0); } 100% { opacity:0; transform:translateX(-50%) translateY(-60px); } }
         @keyframes slideIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
         @keyframes slideDown { from { opacity:0; transform:translateY(-16px); } to { opacity:1; transform:translateY(0); } }
-        input:focus { outline: 1px solid rgba(255,107,53,0.5) !important; }
+        input:focus { outline: 1px solid rgba(67,97,238,0.5) !important; }
         input::placeholder { color: rgba(255,255,255,0.2); }
       `}</style>
 
-      <div style={{ position: "fixed", top: "-20%", left: "50%", transform: "translateX(-50%)", width: "min(600px, 100vw)", height: "min(600px, 100vw)", background: "radial-gradient(circle, rgba(255,107,53,0.07) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "fixed", top: "-20%", left: "50%", transform: "translateX(-50%)", width: "min(600px, 100vw)", height: "min(600px, 100vw)", background: "radial-gradient(circle, rgba(67,97,238,0.07) 0%, transparent 70%)", pointerEvents: "none" }} />
 
       {animPts && (
         <div style={{ position: "fixed", top: "25%", left: "50%", zIndex: 9999, color: "#FFD700", fontSize: 24, fontWeight: 900, animation: "floatUp 1.5s ease-out forwards", textShadow: "0 0 20px rgba(255,215,0,0.8)", pointerEvents: "none" }}>{animPts}</div>
@@ -304,7 +453,7 @@ function Onboarding({ onComplete }) {
 
         <div style={{ display: "flex", gap: 5, marginBottom: 24, justifyContent: "center" }}>
           {[0, 1, 2, 3].map(s => (
-            <div key={s} style={{ height: 3, width: s === step ? 36 : 18, borderRadius: 2, background: s <= step ? "#FF6B35" : "rgba(255,255,255,0.1)", transition: "all 0.3s" }} />
+            <div key={s} style={{ height: 3, width: s === step ? 36 : 18, borderRadius: 2, background: s <= step ? "#4361EE" : "rgba(255,255,255,0.1)", transition: "all 0.3s" }} />
           ))}
         </div>
 
@@ -312,16 +461,16 @@ function Onboarding({ onComplete }) {
           {step === 0 && (
             <div>
               <h2 style={{ fontSize: 26, fontWeight: 800, color: "#fff", marginBottom: 6, letterSpacing: 0.5 }}>Welcome to PuntHub 🎯</h2>
-              <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 13, lineHeight: 1.7, marginBottom: 24, fontFamily: "'Barlow', sans-serif" }}>The world's most rewarding prediction community. Predict outcomes, earn PuntPoints, redeem incredible rewards.</p>
+              <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 13, lineHeight: 1.7, marginBottom: 24 }}>The world's most rewarding prediction community. Predict outcomes, earn PuntPoints, redeem incredible rewards.</p>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, display: "block", marginBottom: 7, letterSpacing: 1 }}>YOUR USERNAME</label>
-                <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. PredictionKing99" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none" }} />
+                <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. PredictionKing99" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 14, fontFamily: "'Inter', sans-serif", outline: "none" }} />
               </div>
               <div style={{ marginBottom: 24 }}>
                 <label style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, display: "block", marginBottom: 7, letterSpacing: 1 }}>EMAIL ADDRESS</label>
-                <input value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" type="email" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 14, fontFamily: "'Barlow', sans-serif", outline: "none" }} />
+                <input value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" type="email" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 14, fontFamily: "'Inter', sans-serif", outline: "none" }} />
               </div>
-              <button onClick={() => name && email && setStep(1)} style={{ width: "100%", background: name && email ? "linear-gradient(135deg, #FF6B35, #FFD700)" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: name && email ? "#000" : "rgba(255,255,255,0.3)", fontWeight: 800, fontSize: 16, cursor: name && email ? "pointer" : "not-allowed", transition: "all 0.3s", fontFamily: "'Barlow Condensed', 'Oswald', sans-serif", letterSpacing: 1 }}>
+              <button onClick={() => name && email && setStep(1)} style={{ width: "100%", background: name && email ? "#4361EE" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: name && email ? "#fff" : "rgba(255,255,255,0.3)", fontWeight: 700, fontSize: 15, cursor: name && email ? "pointer" : "not-allowed", transition: "all 0.3s", letterSpacing: 0.5 }}>
                 LET'S GO →
               </button>
             </div>
@@ -330,20 +479,20 @@ function Onboarding({ onComplete }) {
           {step === 1 && (
             <div>
               <h2 style={{ fontSize: 26, fontWeight: 800, color: "#fff", marginBottom: 6 }}>What interests you? 🧠</h2>
-              <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, marginBottom: 20, fontFamily: "'Barlow', sans-serif" }}>Pick your top categories — choose 3 or more</p>
+              <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, marginBottom: 20 }}>Pick your top categories — choose 3 or more</p>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 24 }}>
                 {CATEGORIES.map(cat => {
                   const sel = interests.includes(cat.id);
                   return (
                     <button key={cat.id} onClick={() => setInterests(prev => sel ? prev.filter(i => i !== cat.id) : [...prev, cat.id])}
-                      style={{ background: sel ? `${cat.color}22` : "rgba(255,255,255,0.03)", border: `1px solid ${sel ? cat.color : "rgba(255,255,255,0.08)"}`, borderRadius: 10, padding: "10px 12px", color: sel ? cat.color : "rgba(255,255,255,0.55)", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "all 0.2s", fontFamily: "'Barlow Condensed', 'Oswald', sans-serif" }}>
+                      style={{ background: sel ? `${cat.color}22` : "rgba(255,255,255,0.03)", border: `1px solid ${sel ? cat.color : "rgba(255,255,255,0.08)"}`, borderRadius: 10, padding: "10px 12px", color: sel ? cat.color : "rgba(255,255,255,0.55)", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "all 0.2s" }}>
                       <span>{cat.icon}</span> {cat.label}
                       {sel && <span style={{ marginLeft: "auto" }}>✓</span>}
                     </button>
                   );
                 })}
               </div>
-              <button onClick={() => interests.length >= 3 && setStep(2)} style={{ width: "100%", background: interests.length >= 3 ? "linear-gradient(135deg, #FF6B35, #FFD700)" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: interests.length >= 3 ? "#000" : "rgba(255,255,255,0.3)", fontWeight: 800, fontSize: 16, cursor: interests.length >= 3 ? "pointer" : "not-allowed", transition: "all 0.3s", fontFamily: "'Barlow Condensed', 'Oswald', sans-serif", letterSpacing: 1 }}>
+              <button onClick={() => interests.length >= 3 && setStep(2)} style={{ width: "100%", background: interests.length >= 3 ? "#4361EE" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: interests.length >= 3 ? "#fff" : "rgba(255,255,255,0.3)", fontWeight: 700, fontSize: 15, cursor: interests.length >= 3 ? "pointer" : "not-allowed", transition: "all 0.3s", letterSpacing: 0.5 }}>
                 {interests.length >= 3 ? "CONTINUE →" : `PICK ${3 - interests.length} MORE`}
               </button>
             </div>
@@ -353,19 +502,19 @@ function Onboarding({ onComplete }) {
             <div>
               <div style={{ textAlign: "center", marginBottom: 20 }}>
                 <h2 style={{ fontSize: 26, fontWeight: 800, color: "#fff", marginBottom: 6 }}>Earn your first PuntPoints! 🏆</h2>
-                <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, fontFamily: "'Barlow', sans-serif" }}>Complete optional tasks to boost your starting balance</p>
+                <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 12 }}>Complete optional tasks to boost your starting balance</p>
                 <div style={{ marginTop: 14, display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,215,0,0.1)", border: "1px solid rgba(255,215,0,0.3)", borderRadius: 20, padding: "7px 18px" }}>
                   <span>🏆</span>
-                  <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 22, fontFamily: "'Barlow Condensed', 'Oswald', sans-serif" }}>{(basePoints + earnedPoints).toLocaleString()} PP</span>
+                  <span style={{ color: "#FFD700", fontWeight: 800, fontSize: 22 }}>{(basePoints + earnedPoints).toLocaleString()} PP</span>
                 </div>
               </div>
-              <div style={{ background: "rgba(0,229,255,0.05)", border: "1px solid rgba(0,229,255,0.2)", borderRadius: 10, padding: "11px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ background: "rgba(67,97,238,0.07)", border: "1px solid rgba(67,97,238,0.2)", borderRadius: 10, padding: "11px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ fontSize: 18 }}>🎁</span>
                 <div style={{ flex: 1 }}>
-                  <div style={{ color: "#00E5FF", fontWeight: 700, fontSize: 13, fontFamily: "'Barlow Condensed', 'Oswald', sans-serif" }}>Welcome Bonus: +500 PP</div>
-                  <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 10, fontFamily: "'Barlow', sans-serif" }}>Just for joining PuntHub!</div>
+                  <div style={{ color: "#4361EE", fontWeight: 700, fontSize: 13 }}>Welcome Bonus: +500 PP</div>
+                  <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 10 }}>Just for joining PuntHub!</div>
                 </div>
-                <span style={{ color: "#00E5FF" }}>✓</span>
+                <span style={{ color: "#4361EE" }}>✓</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20, maxHeight: 260, overflowY: "auto" }}>
                 {SOCIAL_TASKS.map(task => {
@@ -375,18 +524,18 @@ function Onboarding({ onComplete }) {
                       style={{ background: done ? "rgba(52,211,153,0.08)" : "rgba(255,255,255,0.03)", border: `1px solid ${done ? "#34D399" : "rgba(255,255,255,0.08)"}`, borderRadius: 10, padding: "12px 14px", display: "flex", alignItems: "center", gap: 12, cursor: done ? "default" : "pointer", transition: "all 0.2s", textAlign: "left" }}>
                       <span style={{ fontSize: 18, flexShrink: 0 }}>{task.icon}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ color: done ? "#34D399" : "#fff", fontWeight: 700, fontSize: 13, fontFamily: "'Barlow Condensed', 'Oswald', sans-serif" }}>{task.label}</div>
-                        <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 10, fontFamily: "'Barlow', sans-serif" }}>{task.platform}</div>
+                        <div style={{ color: done ? "#34D399" : "#fff", fontWeight: 600, fontSize: 13 }}>{task.label}</div>
+                        <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 10 }}>{task.platform}</div>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-                        <span style={{ color: "#FFD700", fontWeight: 800, fontSize: 13, fontFamily: "'Barlow Condensed', 'Oswald', sans-serif" }}>+{task.points}</span>
+                        <span style={{ color: "#FFD700", fontWeight: 700, fontSize: 13 }}>+{task.points}</span>
                         {done ? <span style={{ color: "#34D399" }}>✓</span> : <span style={{ color: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.1)", width: 18, height: 18, borderRadius: "50%", display: "inline-block" }} />}
                       </div>
                     </button>
                   );
                 })}
               </div>
-              <button onClick={() => setStep(3)} style={{ width: "100%", background: "linear-gradient(135deg, #FF6B35, #FFD700)", border: "none", borderRadius: 12, padding: "13px", color: "#000", fontWeight: 800, fontSize: 15, cursor: "pointer", fontFamily: "'Barlow Condensed', 'Oswald', sans-serif", letterSpacing: 0.5 }}>
+              <button onClick={() => setStep(3)} style={{ width: "100%", background: "#4361EE", border: "none", borderRadius: 12, padding: "13px", color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", letterSpacing: 0.5 }}>
                 {Object.keys(completed).length === 0 ? "SKIP FOR NOW →" : `CLAIM ${basePoints + earnedPoints} PP & CONTINUE →`}
               </button>
             </div>
@@ -396,21 +545,21 @@ function Onboarding({ onComplete }) {
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: 56, marginBottom: 14 }}>🎯</div>
               <h2 style={{ fontSize: 30, fontWeight: 800, color: "#fff", marginBottom: 6, letterSpacing: 1 }}>YOU'RE IN, {name.toUpperCase()}!</h2>
-              <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 13, marginBottom: 20, fontFamily: "'Barlow', sans-serif" }}>Your PuntHub journey begins now. Start predicting and climb the leaderboard.</p>
+              <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 13, marginBottom: 20 }}>Your PuntHub journey begins now. Start predicting and climb the leaderboard.</p>
               <div style={{ background: "rgba(255,215,0,0.08)", border: "1px solid rgba(255,215,0,0.3)", borderRadius: 14, padding: "18px", marginBottom: 24 }}>
                 <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, marginBottom: 4, letterSpacing: 1 }}>YOUR STARTING BALANCE</div>
-                <div style={{ color: "#FFD700", fontWeight: 900, fontSize: 38, fontFamily: "'Barlow Condensed', 'Oswald', sans-serif", letterSpacing: 2 }}>{(basePoints + earnedPoints).toLocaleString()} PP</div>
+                <div style={{ color: "#FFD700", fontWeight: 800, fontSize: 38, letterSpacing: 2 }}>{(basePoints + earnedPoints).toLocaleString()} PP</div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 24 }}>
                 {[["🎯", "Predict", "Make predictions to earn PP"], ["🏆", "Compete", "Climb the leaderboard"], ["🛍️", "Redeem", "Turn points into prizes"]].map(([icon, title, desc]) => (
                   <div key={title} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: "12px 8px" }}>
                     <div style={{ fontSize: 18, marginBottom: 4 }}>{icon}</div>
-                    <div style={{ color: "#fff", fontWeight: 700, fontSize: 11, fontFamily: "'Barlow Condensed', 'Oswald', sans-serif" }}>{title}</div>
-                    <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 9, fontFamily: "'Barlow', sans-serif", lineHeight: 1.4, marginTop: 2 }}>{desc}</div>
+                    <div style={{ color: "#fff", fontWeight: 700, fontSize: 11 }}>{title}</div>
+                    <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 9, lineHeight: 1.4, marginTop: 2 }}>{desc}</div>
                   </div>
                 ))}
               </div>
-              <button onClick={() => onComplete({ name, email, interests, points: basePoints + earnedPoints })} style={{ width: "100%", background: "linear-gradient(135deg, #FF6B35, #FFD700)", border: "none", borderRadius: 12, padding: "14px", color: "#000", fontWeight: 900, fontSize: 17, cursor: "pointer", fontFamily: "'Barlow Condensed', 'Oswald', sans-serif", letterSpacing: 1.5 }}>
+              <button onClick={() => onComplete({ name, email, interests, points: basePoints + earnedPoints })} style={{ width: "100%", background: "#4361EE", border: "none", borderRadius: 12, padding: "14px", color: "#fff", fontWeight: 700, fontSize: 16, cursor: "pointer", letterSpacing: 0.5 }}>
                 START PREDICTING →
               </button>
             </div>
@@ -459,11 +608,9 @@ function BuyCoinsModal({ onClose, onBuy }) {
       style: { layout: "vertical", color: "gold", shape: "rect", label: "pay" },
       createOrder: (_d, actions) =>
         actions.order.create({
-          purchase_units: [{ amount: { value: pkg.price.toFixed(2) }, description: `${pkg.coins.toLocaleString()} PuntCoins` }],
-        }),
+          purchase_units: [{ amount: { value: pkg.price.toFixed(2) }, description: `${pkg.coins.toLocaleString()} PuntCoins` }] }),
       onApprove: (_d, actions) => actions.order.capture().then(() => onBuy(pkg.coins)),
-      onError: (err) => console.error("PayPal error:", err),
-    }).render(paypalRef.current);
+      onError: (err) => console.error("PayPal error:", err) }).render(paypalRef.current);
   }, [ppReady, pkg, gateway, onBuy]);
 
   // ── Payfast ──
@@ -483,8 +630,7 @@ function BuyCoinsModal({ onClose, onBuy }) {
       return_url:   `${location.origin}${location.pathname}?pc_grant=${pkg.coins}`,
       cancel_url:   `${location.origin}${location.pathname}`,
       amount:       pkg.price.toFixed(2),
-      item_name:    `${pkg.coins} PuntCoins — PuntHub`,
-    };
+      item_name:    `${pkg.coins} PuntCoins — PuntHub` };
     Object.entries(fields).forEach(([k, v]) => {
       const inp = document.createElement("input");
       inp.type = "hidden"; inp.name = k; inp.value = v;
@@ -536,7 +682,7 @@ function BuyCoinsModal({ onClose, onBuy }) {
     { id: "magic",    label: "Magic Link",        icon: "✨", desc: "Passwordless + crypto on-ramp" },
   ];
 
-  const btnBase = { border: "none", borderRadius: 12, padding: "14px", fontWeight: 800, fontSize: 14, cursor: "pointer", width: "100%", letterSpacing: 0.5, fontFamily: "'Barlow Condensed', sans-serif" };
+  const btnBase = { border: "none", borderRadius: 12, padding: "14px", fontWeight: 800, fontSize: 14, cursor: "pointer", width: "100%", letterSpacing: 0.5 };
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
@@ -545,8 +691,8 @@ function BuyCoinsModal({ onClose, onBuy }) {
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
           <div>
-            <h2 style={{ color: "#FFD700", fontWeight: 900, fontSize: 22, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 }}>💰 BUY PUNTCOINS</h2>
-            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>
+            <h2 style={{ color: "#FFD700", fontWeight: 900, fontSize: 22, letterSpacing: 1 }}>💰 BUY PUNTCOINS</h2>
+            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>
               Virtual credits for P2P betting sessions • Min. <strong style={{ color: "#FFD700" }}>$5</strong>
             </p>
           </div>
@@ -564,13 +710,13 @@ function BuyCoinsModal({ onClose, onBuy }) {
                   <span style={{ fontSize: 22 }}>🪙</span>
                   <div style={{ textAlign: "left" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                      <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 18, fontFamily: "'Barlow Condensed', sans-serif" }}>{p.coins.toLocaleString()} PC</span>
-                      {p.popular && <span style={{ background: "#FF6B35", color: "#fff", fontSize: 8, fontWeight: 900, padding: "2px 6px", borderRadius: 20, letterSpacing: 0.5 }}>POPULAR</span>}
+                      <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 18 }}>{p.coins.toLocaleString()} PC</span>
+                      {p.popular && <span style={{ background: "#4361EE", color: "#fff", fontSize: 8, fontWeight: 900, padding: "2px 6px", borderRadius: 20, letterSpacing: 0.5 }}>POPULAR</span>}
                     </div>
                     {p.bonus && <div style={{ color: "#34D399", fontSize: 10, fontWeight: 700 }}>{p.bonus}</div>}
                   </div>
                 </div>
-                <div style={{ background: pkg.id === p.id ? "linear-gradient(135deg, #FF6B35, #FFD700)" : "rgba(255,255,255,0.07)", borderRadius: 8, padding: "6px 14px", color: pkg.id === p.id ? "#000" : "rgba(255,255,255,0.6)", fontWeight: 800, fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif" }}>{p.label}</div>
+                <div style={{ background: pkg.id === p.id ? "linear-gradient(135deg, #4361EE, #7B2FBE)" : "rgba(255,255,255,0.07)", borderRadius: 8, padding: "6px 14px", color: pkg.id === p.id ? "#000" : "rgba(255,255,255,0.6)", fontWeight: 800, fontSize: 13 }}>{p.label}</div>
               </button>
             ))}
           </div>
@@ -585,8 +731,8 @@ function BuyCoinsModal({ onClose, onBuy }) {
                 <button key={g.id} onClick={() => setGateway(g.id)}
                   style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "14px 12px", cursor: "pointer", textAlign: "left", transition: "border-color 0.2s" }}>
                   <div style={{ fontSize: 26, marginBottom: 6 }}>{g.icon}</div>
-                  <div style={{ color: "#fff", fontWeight: 700, fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", marginBottom: 3 }}>{g.label}</div>
-                  <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontFamily: "'Barlow', sans-serif", lineHeight: 1.4 }}>{g.desc}</div>
+                  <div style={{ color: "#fff", fontWeight: 700, fontSize: 13, marginBottom: 3 }}>{g.label}</div>
+                  <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, lineHeight: 1.4 }}>{g.desc}</div>
                 </button>
               ))}
             </div>
@@ -596,15 +742,15 @@ function BuyCoinsModal({ onClose, onBuy }) {
         {/* ── PayPal ── */}
         {gateway === "paypal" && (
           <div>
-            <button onClick={() => setGateway(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 12, cursor: "pointer", marginBottom: 12, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>← BACK</button>
+            <button onClick={() => setGateway(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 12, cursor: "pointer", marginBottom: 12, fontWeight: 700 }}>← BACK</button>
             <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>PAY WITH PAYPAL</div>
             <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
-              <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 17, fontFamily: "'Barlow Condensed', sans-serif" }}>{pkg.coins.toLocaleString()} PC</span>
+              <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 17 }}>{pkg.coins.toLocaleString()} PC</span>
               {pkg.bonus && <span style={{ color: "#34D399", fontSize: 11, marginLeft: 8 }}>{pkg.bonus}</span>}
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginLeft: 8 }}>— {pkg.label}</span>
             </div>
             {!ppReady
-              ? <div style={{ textAlign: "center", padding: "22px 0", color: "rgba(255,255,255,0.35)", fontSize: 13, fontFamily: "'Barlow', sans-serif" }}>⏳ Loading PayPal SDK…</div>
+              ? <div style={{ textAlign: "center", padding: "22px 0", color: "rgba(255,255,255,0.35)", fontSize: 13 }}>⏳ Loading PayPal SDK…</div>
               : <div ref={paypalRef} />
             }
           </div>
@@ -613,20 +759,20 @@ function BuyCoinsModal({ onClose, onBuy }) {
         {/* ── Coinbase Commerce ── */}
         {gateway === "coinbase" && (
           <div>
-            <button onClick={() => setGateway(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 12, cursor: "pointer", marginBottom: 12, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>← BACK</button>
+            <button onClick={() => setGateway(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 12, cursor: "pointer", marginBottom: 12, fontWeight: 700 }}>← BACK</button>
             <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>PAY WITH CRYPTO</div>
             <div style={{ background: "rgba(0,82,255,0.08)", border: "1px solid rgba(0,82,255,0.2)", borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
               <div style={{ color: "#fff", fontWeight: 700, fontSize: 13, marginBottom: 3 }}>Coinbase Commerce</div>
-              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, fontFamily: "'Barlow', sans-serif", lineHeight: 1.5 }}>BTC · ETH · USDC · DAI · APE and more. Secure hosted checkout by Coinbase.</div>
+              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, lineHeight: 1.5 }}>BTC · ETH · USDC · DAI · APE and more. Secure hosted checkout by Coinbase.</div>
             </div>
             <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 12, padding: "13px 15px", marginBottom: 14 }}>
-              <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 17, fontFamily: "'Barlow Condensed', sans-serif" }}>{pkg.coins.toLocaleString()} PC</span>
+              <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 17 }}>{pkg.coins.toLocaleString()} PC</span>
               {pkg.bonus && <span style={{ color: "#34D399", fontSize: 11, marginLeft: 8 }}>{pkg.bonus}</span>}
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginLeft: 8 }}>— {pkg.label}</span>
             </div>
             {coinbaseAwaitingConfirm ? (
               <div>
-                <div style={{ background: "rgba(0,200,0,0.07)", border: "1px solid rgba(0,200,0,0.2)", borderRadius: 10, padding: "12px 14px", marginBottom: 12, color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'Barlow', sans-serif", lineHeight: 1.5 }}>
+                <div style={{ background: "rgba(0,200,0,0.07)", border: "1px solid rgba(0,200,0,0.2)", borderRadius: 10, padding: "12px 14px", marginBottom: 12, color: "rgba(255,255,255,0.6)", fontSize: 12, lineHeight: 1.5 }}>
                   Complete payment in the Coinbase Commerce window, then click below.
                 </div>
                 <button onClick={() => { setCoinbaseAwaitingConfirm(false); onBuy(pkg.coins); }} style={{ ...btnBase, background: "linear-gradient(135deg, #0052FF, #1652F0)", color: "#fff" }}>✅ I've Completed Payment</button>
@@ -640,14 +786,14 @@ function BuyCoinsModal({ onClose, onBuy }) {
         {/* ── Payfast ── */}
         {gateway === "payfast" && (
           <div>
-            <button onClick={() => setGateway(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 12, cursor: "pointer", marginBottom: 12, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>← BACK</button>
+            <button onClick={() => setGateway(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 12, cursor: "pointer", marginBottom: 12, fontWeight: 700 }}>← BACK</button>
             <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>PAY WITH PAYFAST</div>
             <div style={{ background: "rgba(0,160,0,0.08)", border: "1px solid rgba(0,160,0,0.2)", borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
               <div style={{ color: "#fff", fontWeight: 700, fontSize: 13, marginBottom: 3 }}>Payfast — South Africa</div>
-              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, fontFamily: "'Barlow', sans-serif", lineHeight: 1.5 }}>Credit / debit card · EFT · SnapScan · Mobicred · Zapper</div>
+              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, lineHeight: 1.5 }}>Credit / debit card · EFT · SnapScan · Mobicred · Zapper</div>
             </div>
             <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 12, padding: "13px 15px", marginBottom: 14 }}>
-              <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 17, fontFamily: "'Barlow Condensed', sans-serif" }}>{pkg.coins.toLocaleString()} PC</span>
+              <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 17 }}>{pkg.coins.toLocaleString()} PC</span>
               {pkg.bonus && <span style={{ color: "#34D399", fontSize: 11, marginLeft: 8 }}>{pkg.bonus}</span>}
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginLeft: 8 }}>— {pkg.label}</span>
             </div>
@@ -661,20 +807,20 @@ function BuyCoinsModal({ onClose, onBuy }) {
         {/* ── Magic Link ── */}
         {gateway === "magic" && (
           <div>
-            <button onClick={() => setGateway(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 12, cursor: "pointer", marginBottom: 12, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>← BACK</button>
+            <button onClick={() => setGateway(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 12, cursor: "pointer", marginBottom: 12, fontWeight: 700 }}>← BACK</button>
             <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>PAY WITH MAGIC</div>
             <div style={{ background: "rgba(100,0,255,0.08)", border: "1px solid rgba(100,0,255,0.22)", borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
               <div style={{ color: "#fff", fontWeight: 700, fontSize: 13, marginBottom: 3 }}>✨ Magic Link</div>
-              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, fontFamily: "'Barlow', sans-serif", lineHeight: 1.5 }}>Passwordless sign-in + crypto on-ramp. Fund your wallet with a card in seconds — no seed phrase needed.</div>
+              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, lineHeight: 1.5 }}>Passwordless sign-in + crypto on-ramp. Fund your wallet with a card in seconds — no seed phrase needed.</div>
             </div>
             <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 12, padding: "13px 15px", marginBottom: 14 }}>
-              <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 17, fontFamily: "'Barlow Condensed', sans-serif" }}>{pkg.coins.toLocaleString()} PC</span>
+              <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 17 }}>{pkg.coins.toLocaleString()} PC</span>
               {pkg.bonus && <span style={{ color: "#34D399", fontSize: 11, marginLeft: 8 }}>{pkg.bonus}</span>}
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginLeft: 8 }}>— {pkg.label}</span>
             </div>
             {magicAwaitingConfirm ? (
               <div>
-                <div style={{ background: "rgba(100,0,255,0.07)", border: "1px solid rgba(100,0,255,0.2)", borderRadius: 10, padding: "12px 14px", marginBottom: 12, color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'Barlow', sans-serif", lineHeight: 1.5 }}>
+                <div style={{ background: "rgba(100,0,255,0.07)", border: "1px solid rgba(100,0,255,0.2)", borderRadius: 10, padding: "12px 14px", marginBottom: 12, color: "rgba(255,255,255,0.6)", fontSize: 12, lineHeight: 1.5 }}>
                   Complete payment in the Magic window, then click below.
                 </div>
                 <button onClick={() => { setMagicAwaitingConfirm(false); onBuy(pkg.coins); }} style={{ ...btnBase, background: "linear-gradient(135deg, #6400FF, #A855F7)", color: "#fff" }}>✅ I've Completed Payment</button>
@@ -685,7 +831,7 @@ function BuyCoinsModal({ onClose, onBuy }) {
           </div>
         )}
 
-        <p style={{ color: "rgba(255,255,255,0.15)", fontSize: 9, textAlign: "center", marginTop: 18, fontFamily: "'Barlow', sans-serif", lineHeight: 1.5 }}>
+        <p style={{ color: "rgba(255,255,255,0.15)", fontSize: 9, textAlign: "center", marginTop: 18, lineHeight: 1.5 }}>
           PuntCoins are virtual gaming credits used for P2P prediction sessions. Payments processed by the selected provider.
         </p>
       </div>
@@ -712,8 +858,7 @@ function CreateBetSession({ puntCoins, onCreated, onBuyCoins, scenarios }) {
       status: null,
       round: 1,
       userChoice: null,
-      opponentChoice: null,
-    };
+      opponentChoice: null };
     onCreated(session);
   };
 
@@ -725,13 +870,13 @@ function CreateBetSession({ puntCoins, onCreated, onBuyCoins, scenarios }) {
         <label style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, display: "block", marginBottom: 8, letterSpacing: 1 }}>YOUR STAKE (PC)</label>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
           {presets.map(p => (
-            <button key={p} onClick={() => setStake(p)} style={{ background: stake === p ? "rgba(255,107,53,0.2)" : "rgba(255,255,255,0.03)", border: `1px solid ${stake === p ? "#FF6B35" : "rgba(255,255,255,0.1)"}`, borderRadius: 8, padding: "7px 14px", color: stake === p ? "#FF6B35" : "rgba(255,255,255,0.5)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>{p}</button>
+            <button key={p} onClick={() => setStake(p)} style={{ background: stake === p ? "rgba(67,97,238,0.2)" : "rgba(255,255,255,0.03)", border: `1px solid ${stake === p ? "#4361EE" : "rgba(255,255,255,0.1)"}`, borderRadius: 8, padding: "7px 14px", color: stake === p ? "#4361EE" : "rgba(255,255,255,0.5)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>{p}</button>
           ))}
         </div>
-        <input type="number" value={stake} onChange={e => setStake(Math.max(MIN_STAKE, parseInt(e.target.value) || MIN_STAKE))} style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 14px", color: "#fff", fontSize: 15, fontFamily: "'Barlow Condensed', sans-serif", outline: "none" }} />
+        <input type="number" value={stake} onChange={e => setStake(Math.max(MIN_STAKE, parseInt(e.target.value) || MIN_STAKE))} style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 14px", color: "#fff", fontSize: 15, outline: "none" }} />
       </div>
 
-      <div style={{ background: "rgba(255,107,53,0.06)", border: "1px solid rgba(255,107,53,0.15)", borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}>
+      <div style={{ background: "rgba(67,97,238,0.06)", border: "1px solid rgba(67,97,238,0.15)", borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}>
         <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 4 }}>PREVIEW SCENARIO</div>
         <div style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>{previewScenario.q}</div>
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
@@ -742,10 +887,10 @@ function CreateBetSession({ puntCoins, onCreated, onBuyCoins, scenarios }) {
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>Total pot if opponent joins: <strong style={{ color: "#FFD700" }}>{stake * 2} PC</strong></span>
+        <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>Total pot if opponent joins: <strong style={{ color: "#FFD700" }}>{stake * 2} PC</strong></span>
       </div>
 
-      <button onClick={createSession} style={{ width: "100%", background: puntCoins >= stake ? "linear-gradient(135deg, #FF6B35, #FFD700)" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: puntCoins >= stake ? "#000" : "rgba(255,255,255,0.3)", fontWeight: 800, fontSize: 15, cursor: "pointer", letterSpacing: 0.5, fontFamily: "'Barlow Condensed', sans-serif" }}>
+      <button onClick={createSession} style={{ width: "100%", background: puntCoins >= stake ? "#4361EE" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: puntCoins >= stake ? "#fff" : "rgba(255,255,255,0.3)", fontWeight: 800, fontSize: 15, cursor: "pointer", letterSpacing: 0.5 }}>
         {puntCoins >= stake ? `DEPLOY SESSION (${stake.toLocaleString()} PC) →` : `BUY MIN. $5 IN PUNTCOINS →`}
       </button>
     </div>
@@ -782,31 +927,30 @@ function BetSession({ session, puntCoins, onResult, onBack }) {
         userChoice: choice,
         opponentChoice,
         status: winner === "user" ? "won" : "lost",
-        winner,
-      };
+        winner };
       onResult(winner, updatedSession);
     }, 1500);
   };
 
   return (
     <div>
-      <button onClick={onBack} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 13, cursor: "pointer", marginBottom: 16, display: "flex", alignItems: "center", gap: 6, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>← BACK TO LOBBY</button>
+      <button onClick={onBack} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 13, cursor: "pointer", marginBottom: 16, display: "flex", alignItems: "center", gap: 6, fontWeight: 700 }}>← BACK TO LOBBY</button>
 
-      <div style={{ background: "linear-gradient(135deg, rgba(255,107,53,0.1), rgba(255,215,0,0.05))", border: "1px solid rgba(255,107,53,0.2)", borderRadius: 16, padding: "20px 16px", marginBottom: 16, textAlign: "center" }}>
+      <div style={{ background: "linear-gradient(135deg, rgba(67,97,238,0.1), rgba(255,215,0,0.05))", border: "1px solid rgba(67,97,238,0.2)", borderRadius: 16, padding: "20px 16px", marginBottom: 16, textAlign: "center" }}>
         <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, letterSpacing: 1, marginBottom: 6 }}>ROUND {session.round} • LIVE BET</div>
-        <div style={{ color: "#FFD700", fontWeight: 900, fontSize: 28, fontFamily: "'Barlow Condensed', sans-serif", marginBottom: 4 }}>{session.stake * 2} PC POT</div>
-        <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>Winner takes all</div>
+        <div style={{ color: "#FFD700", fontWeight: 900, fontSize: 28, marginBottom: 4 }}>{session.stake * 2} PC POT</div>
+        <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>Winner takes all</div>
       </div>
 
       <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "18px 16px", marginBottom: 16 }}>
         <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, letterSpacing: 1, marginBottom: 10 }}>PREDICTION SCENARIO</div>
-        <h3 style={{ fontSize: 18, fontWeight: 800, color: "#fff", marginBottom: 16, lineHeight: 1.3, fontFamily: "'Barlow Condensed', sans-serif" }}>{session.scenario.q}</h3>
+        <h3 style={{ fontSize: 18, fontWeight: 800, color: "#fff", marginBottom: 16, lineHeight: 1.3 }}>{session.scenario.q}</h3>
 
         {!opponentJoined ? (
           <div style={{ textAlign: "center", padding: "20px 0" }}>
             <div style={{ fontSize: 32, marginBottom: 8 }}>⏳</div>
-            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, fontFamily: "'Barlow', sans-serif" }}>Waiting for opponent to join...</div>
-            <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, marginTop: 4, fontFamily: "'Barlow', sans-serif" }}>Session ID: #{session.id}</div>
+            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>Waiting for opponent to join...</div>
+            <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, marginTop: 4 }}>Session ID: #{session.id}</div>
           </div>
         ) : (
           <div>
@@ -817,21 +961,21 @@ function BetSession({ session, puntCoins, onResult, onBack }) {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               {session.scenario.options.map((opt, i) => (
                 <button key={i} onClick={() => !userChoice && !resolving && resolve(opt)}
-                  style={{ background: userChoice === opt ? "rgba(255,107,53,0.2)" : "rgba(255,255,255,0.04)", border: `2px solid ${userChoice === opt ? "#FF6B35" : "rgba(255,255,255,0.1)"}`, borderRadius: 12, padding: "16px 12px", color: userChoice === opt ? "#FF6B35" : "#fff", fontWeight: 800, fontSize: 15, cursor: userChoice ? "default" : "pointer", transition: "all 0.2s", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5 }}>
+                  style={{ background: userChoice === opt ? "rgba(67,97,238,0.2)" : "rgba(255,255,255,0.04)", border: `2px solid ${userChoice === opt ? "#4361EE" : "rgba(255,255,255,0.1)"}`, borderRadius: 12, padding: "16px 12px", color: userChoice === opt ? "#4361EE" : "#fff", fontWeight: 800, fontSize: 15, cursor: userChoice ? "default" : "pointer", transition: "all 0.2s", letterSpacing: 0.5 }}>
                   {opt}
                 </button>
               ))}
             </div>
             {resolving && (
-              <div style={{ textAlign: "center", marginTop: 16, color: "rgba(255,255,255,0.5)", fontSize: 13, fontFamily: "'Barlow', sans-serif" }}>🎲 Resolving outcome...</div>
+              <div style={{ textAlign: "center", marginTop: 16, color: "rgba(255,255,255,0.5)", fontSize: 13 }}>🎲 Resolving outcome...</div>
             )}
           </div>
         )}
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", padding: "0 4px" }}>
-        <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>You wagered: <strong style={{ color: "#FFD700" }}>{session.stake} PC</strong></div>
-        <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>To win: <strong style={{ color: "#34D399" }}>{session.stake * 2} PC</strong></div>
+        <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>You wagered: <strong style={{ color: "#FFD700" }}>{session.stake} PC</strong></div>
+        <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>To win: <strong style={{ color: "#34D399" }}>{session.stake * 2} PC</strong></div>
       </div>
     </div>
   );
@@ -857,26 +1001,25 @@ function BetResult({ session, puntCoins, onRematch, onBack, scenarios }) {
       round: session.round + 1,
       userChoice: null,
       opponentChoice: null,
-      isRematch: true,
-    };
+      isRematch: true };
     onRematch(rematchSession);
   };
 
   return (
     <div>
-      <button onClick={onBack} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 13, cursor: "pointer", marginBottom: 16, display: "flex", alignItems: "center", gap: 6, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>← BACK TO LOBBY</button>
+      <button onClick={onBack} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 13, cursor: "pointer", marginBottom: 16, display: "flex", alignItems: "center", gap: 6, fontWeight: 700 }}>← BACK TO LOBBY</button>
 
       <div style={{ textAlign: "center", padding: "32px 16px", background: won ? "linear-gradient(135deg, rgba(52,211,153,0.1), rgba(255,215,0,0.05))" : "linear-gradient(135deg, rgba(255,100,100,0.1), rgba(255,107,53,0.05))", border: `1px solid ${won ? "rgba(52,211,153,0.3)" : "rgba(255,100,100,0.3)"}`, borderRadius: 16, marginBottom: 16 }}>
         <div style={{ fontSize: 56, marginBottom: 12 }}>{won ? "🏆" : "💔"}</div>
-        <h2 style={{ fontSize: 32, fontWeight: 900, color: won ? "#34D399" : "#FF6464", letterSpacing: 2, fontFamily: "'Barlow Condensed', sans-serif", marginBottom: 8 }}>
+        <h2 style={{ fontSize: 32, fontWeight: 900, color: won ? "#34D399" : "#FF6464", letterSpacing: 2, marginBottom: 8 }}>
           {won ? "YOU WIN!" : "YOU LOSE!"}
         </h2>
-        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, fontFamily: "'Barlow', sans-serif", marginBottom: 16 }}>
+        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, marginBottom: 16 }}>
           {won ? `You predicted correctly!` : `Better luck next time.`}
         </div>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,215,0,0.1)", border: "1px solid rgba(255,215,0,0.3)", borderRadius: 12, padding: "10px 20px" }}>
           <span style={{ fontSize: 20 }}>🪙</span>
-          <span style={{ color: won ? "#34D399" : "#FF6464", fontWeight: 900, fontSize: 28, fontFamily: "'Barlow Condensed', sans-serif" }}>
+          <span style={{ color: won ? "#34D399" : "#FF6464", fontWeight: 900, fontSize: 28 }}>
             {won ? `+${session.stake * 2}` : `-${session.stake}`} PC
           </span>
         </div>
@@ -886,9 +1029,9 @@ function BetResult({ session, puntCoins, onRematch, onBack, scenarios }) {
         <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, letterSpacing: 1, marginBottom: 10 }}>ROUND SUMMARY</div>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 8 }}>{session.scenario.q}</div>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <div style={{ background: "rgba(255,107,53,0.1)", border: "1px solid rgba(255,107,53,0.2)", borderRadius: 8, padding: "6px 12px" }}>
+          <div style={{ background: "rgba(67,97,238,0.1)", border: "1px solid rgba(67,97,238,0.2)", borderRadius: 8, padding: "6px 12px" }}>
             <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: 1 }}>YOUR PICK</div>
-            <div style={{ color: "#FF6B35", fontWeight: 700, fontSize: 13 }}>{session.userChoice}</div>
+            <div style={{ color: "#4361EE", fontWeight: 700, fontSize: 13 }}>{session.userChoice}</div>
           </div>
           <div style={{ background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 8, padding: "6px 12px" }}>
             <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: 1 }}>OPPONENT</div>
@@ -900,11 +1043,11 @@ function BetResult({ session, puntCoins, onRematch, onBack, scenarios }) {
       {!isRematch && (
         <div style={{ background: "rgba(255,215,0,0.05)", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 14, padding: "16px", marginBottom: 14 }}>
           <h3 style={{ fontWeight: 800, fontSize: 15, color: "#FFD700", marginBottom: 6, letterSpacing: 0.5 }}>🔁 REMATCH AVAILABLE</h3>
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, fontFamily: "'Barlow', sans-serif", marginBottom: 14, lineHeight: 1.5 }}>
+          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, marginBottom: 14, lineHeight: 1.5 }}>
             Challenge to a final round! Both players deposit <strong style={{ color: "#FFD700" }}>{session.stake} PC</strong> again. A new scenario is generated — winner takes the entire pot of <strong style={{ color: "#34D399" }}>{session.stake * 2} PC</strong>, loser gets nothing.
           </p>
           <button onClick={startRematch} disabled={puntCoins < session.stake}
-            style={{ width: "100%", background: puntCoins >= session.stake ? "linear-gradient(135deg, #FFD700, #FF6B35)" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: puntCoins >= session.stake ? "#000" : "rgba(255,255,255,0.3)", fontWeight: 800, fontSize: 15, cursor: puntCoins >= session.stake ? "pointer" : "not-allowed", letterSpacing: 0.5, fontFamily: "'Barlow Condensed', sans-serif" }}>
+            style={{ width: "100%", background: puntCoins >= session.stake ? "linear-gradient(135deg, #7B2FBE, #4361EE)" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: puntCoins >= session.stake ? "#000" : "rgba(255,255,255,0.3)", fontWeight: 800, fontSize: 15, cursor: puntCoins >= session.stake ? "pointer" : "not-allowed", letterSpacing: 0.5 }}>
             {puntCoins >= session.stake ? `🔁 REMATCH (${session.stake} PC) →` : "INSUFFICIENT PC FOR REMATCH"}
           </button>
         </div>
@@ -912,11 +1055,11 @@ function BetResult({ session, puntCoins, onRematch, onBack, scenarios }) {
 
       {isRematch && (
         <div style={{ textAlign: "center", padding: "12px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, marginBottom: 14 }}>
-          <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, fontFamily: "'Barlow', sans-serif" }}>This was the final rematch round. No further rematches available.</div>
+          <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>This was the final rematch round. No further rematches available.</div>
         </div>
       )}
 
-      <button onClick={onBack} style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "12px", color: "rgba(255,255,255,0.6)", fontWeight: 700, fontSize: 13, cursor: "pointer", letterSpacing: 0.5, fontFamily: "'Barlow Condensed', sans-serif" }}>
+      <button onClick={onBack} style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "12px", color: "rgba(255,255,255,0.6)", fontWeight: 700, fontSize: 13, cursor: "pointer", letterSpacing: 0.5 }}>
         BACK TO LOBBY
       </button>
     </div>
@@ -925,7 +1068,7 @@ function BetResult({ session, puntCoins, onRematch, onBack, scenarios }) {
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function PuntHub() {
-  const [screen, setScreen] = useState("onboarding");
+  const [screen, setScreen] = useState("landing");
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState("home");
   const [predictions, setPredictions] = useState({});
@@ -990,6 +1133,10 @@ export default function PuntHub() {
     }
   };
 
+  if (screen === "landing") {
+    return <LandingPage onStart={() => setScreen("onboarding")} />;
+  }
+
   if (screen === "onboarding") {
     return <Onboarding onComplete={(userData) => { setUser(userData); setScreen("app"); }} />;
   }
@@ -1014,9 +1161,9 @@ export default function PuntHub() {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", minHeight: "100dvh", background: "#0A0A0F", fontFamily: "'Barlow Condensed', 'Oswald', sans-serif", color: "#fff", display: "flex", flexDirection: "column", overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", minHeight: "100dvh", background: "#0A0A0F", fontFamily: "'Inter', sans-serif", color: "#fff", display: "flex", flexDirection: "column", overflowX: "hidden" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         ::-webkit-scrollbar { width: 3px; height: 3px; } ::-webkit-scrollbar-track { background: #0A0A0F; } ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
         @keyframes slideDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
@@ -1044,14 +1191,14 @@ export default function PuntHub() {
       )}
 
       {/* Top Nav */}
-      <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(10,10,15,0.95)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "0 16px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+      <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(10,10,15,0.96)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "0 16px", height: 58, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
         <PuntHubLogoDark size={36} showText={!isMobile} />
 
         {/* Desktop tabs */}
         {!isMobile && (
           <div style={{ display: "flex", gap: 3 }}>
             {TABS.map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ background: activeTab === tab.id ? "rgba(255,107,53,0.15)" : "none", border: activeTab === tab.id ? "1px solid rgba(255,107,53,0.3)" : "1px solid transparent", borderRadius: 8, padding: "6px 14px", color: activeTab === tab.id ? "#FF6B35" : "rgba(255,255,255,0.5)", fontWeight: 700, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s", letterSpacing: 0.5 }}>
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ background: activeTab === tab.id ? "rgba(67,97,238,0.15)" : "none", border: activeTab === tab.id ? "1px solid rgba(67,97,238,0.35)" : "1px solid transparent", borderRadius: 8, padding: "6px 14px", color: activeTab === tab.id ? "#6B8EFF" : "rgba(255,255,255,0.5)", fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s" }}>
                 <span>{tab.icon}</span> {tab.label}
               </button>
             ))}
@@ -1061,15 +1208,15 @@ export default function PuntHub() {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,215,0,0.1)", border: "1px solid rgba(255,215,0,0.25)", borderRadius: 20, padding: "5px 12px" }}>
             <span style={{ fontSize: 12 }}>🏆</span>
-            <span style={{ color: "#FFD700", fontWeight: 800, fontSize: 13 }}>{user?.points?.toLocaleString()}</span>
+            <span style={{ color: "#FFD700", fontWeight: 700, fontSize: 13 }}>{user?.points?.toLocaleString()}</span>
             {!isMobile && <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 10 }}>PP</span>}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,215,0,0.08)", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 20, padding: "5px 12px", cursor: "pointer" }} onClick={() => setShowBuyCoins(true)}>
             <span style={{ fontSize: 12 }}>🪙</span>
-            <span style={{ color: "#FFD700", fontWeight: 800, fontSize: 13 }}>{puntCoins.toLocaleString()}</span>
+            <span style={{ color: "#FFD700", fontWeight: 700, fontSize: 13 }}>{puntCoins.toLocaleString()}</span>
             {!isMobile && <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 10 }}>PC</span>}
           </div>
-          <div style={{ width: 32, height: 32, background: "linear-gradient(135deg, #FF6B35, #FFD700)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 900, color: "#000", flexShrink: 0 }}>
+          <div style={{ width: 32, height: 32, background: "linear-gradient(135deg, #4361EE, #7B2FBE)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
             {user?.name?.[0]?.toUpperCase()}
           </div>
         </div>
@@ -1083,20 +1230,20 @@ export default function PuntHub() {
           {activeTab === "home" && (
             <div className="tab-content">
               {/* Hero */}
-              <div style={{ background: "linear-gradient(135deg, rgba(255,107,53,0.12) 0%, rgba(255,215,0,0.06) 50%, rgba(0,229,255,0.06) 100%)", border: "1px solid rgba(255,107,53,0.18)", borderRadius: 16, padding: "20px 16px", marginBottom: 20 }}>
+              <div style={{ background: "linear-gradient(135deg, rgba(67,97,238,0.12) 0%, rgba(123,47,190,0.06) 50%, rgba(67,97,238,0.04) 100%)", border: "1px solid rgba(67,97,238,0.18)", borderRadius: 16, padding: "20px 16px", marginBottom: 20 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
                   <div>
-                    <h1 style={{ fontSize: isMobile ? 28 : 38, fontWeight: 800, letterSpacing: 1, lineHeight: 1.1 }}>
-                      PREDICT. WIN. <span style={{ color: "#FF6B35" }}>EARN.</span>
+                    <h1 style={{ fontSize: isMobile ? 28 : 38, fontWeight: 800, letterSpacing: 0.5, lineHeight: 1.1 }}>
+                      PREDICT. WIN. <span style={{ color: "#6B8EFF" }}>EARN.</span>
                     </h1>
-                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginTop: 4, fontFamily: "'Barlow', sans-serif" }}>{allEvents.length} live events • Earn PuntPoints • Redeem rewards</p>
+                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginTop: 4 }}>{allEvents.length} live events • Earn PuntPoints • Redeem rewards</p>
                   </div>
                   <div style={{ display: "flex", gap: 16 }}>
                     {[["🎯", Object.keys(predictions).length, "Predictions"], ["📊", allEvents.filter(e => !predictions[e.id]).length, "Open"]].map(([icon, val, label]) => (
                       <div key={label} style={{ textAlign: "center" }}>
                         <div style={{ fontSize: 16 }}>{icon}</div>
-                        <div style={{ fontWeight: 800, fontSize: 22, color: "#FF6B35" }}>{val}</div>
-                        <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontFamily: "'Barlow', sans-serif" }}>{label}</div>
+                        <div style={{ fontWeight: 800, fontSize: 22, color: "#6B8EFF" }}>{val}</div>
+                        <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10 }}>{label}</div>
                       </div>
                     ))}
                   </div>
@@ -1105,12 +1252,12 @@ export default function PuntHub() {
 
               {/* Category Filters */}
               <div style={{ display: "flex", gap: 6, marginBottom: 16, overflowX: "auto", paddingBottom: 6 }}>
-                <button onClick={() => setFilterCat("all")} style={{ background: filterCat === "all" ? "#FF6B35" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 20, padding: "7px 14px", color: filterCat === "all" ? "#fff" : "rgba(255,255,255,0.5)", fontWeight: 700, fontSize: 11, cursor: "pointer", whiteSpace: "nowrap", letterSpacing: 0.5 }}>
+                <button onClick={() => setFilterCat("all")} style={{ background: filterCat === "all" ? "#4361EE" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 20, padding: "7px 14px", color: filterCat === "all" ? "#fff" : "rgba(255,255,255,0.5)", fontWeight: 600, fontSize: 11, cursor: "pointer", whiteSpace: "nowrap" }}>
                   All Events
                 </button>
                 {CATEGORIES.map(cat => (
                   <button key={cat.id} onClick={() => setFilterCat(cat.id)}
-                    style={{ background: filterCat === cat.id ? `${cat.color}22` : "rgba(255,255,255,0.03)", border: `1px solid ${filterCat === cat.id ? cat.color : "rgba(255,255,255,0.08)"}`, borderRadius: 20, padding: "7px 12px", color: filterCat === cat.id ? cat.color : "rgba(255,255,255,0.45)", fontWeight: 700, fontSize: 11, cursor: "pointer", whiteSpace: "nowrap", display: "flex", gap: 5, alignItems: "center", transition: "all 0.2s", letterSpacing: 0.5 }}>
+                    style={{ background: filterCat === cat.id ? `${cat.color}22` : "rgba(255,255,255,0.03)", border: `1px solid ${filterCat === cat.id ? cat.color : "rgba(255,255,255,0.08)"}`, borderRadius: 20, padding: "7px 12px", color: filterCat === cat.id ? cat.color : "rgba(255,255,255,0.45)", fontWeight: 600, fontSize: 11, cursor: "pointer", whiteSpace: "nowrap", display: "flex", gap: 5, alignItems: "center", transition: "all 0.2s" }}>
                     {cat.icon} {cat.label}
                   </button>
                 ))}
@@ -1130,10 +1277,10 @@ export default function PuntHub() {
             <div className="tab-content">
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20, gap: 12 }}>
                 <div>
-                  <h2 style={{ fontSize: isMobile ? 26 : 32, fontWeight: 800, letterSpacing: 1 }}>COMMUNITY <span style={{ color: "#FF6B35" }}>FORUM</span></h2>
-                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>Discuss predictions & share analysis</p>
+                  <h2 style={{ fontSize: isMobile ? 26 : 32, fontWeight: 800 }}>COMMUNITY <span style={{ color: "#6B8EFF" }}>FORUM</span></h2>
+                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>Discuss predictions & share analysis</p>
                 </div>
-                <button onClick={() => showNotif("✍️ Post creation coming soon!")} style={{ background: "linear-gradient(135deg, #FF6B35, #FFD700)", border: "none", borderRadius: 10, padding: "9px 16px", color: "#000", fontWeight: 800, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap", letterSpacing: 0.5, flexShrink: 0 }}>
+                <button onClick={() => showNotif("✍️ Post creation coming soon!")} style={{ background: "#4361EE", border: "none", borderRadius: 10, padding: "9px 16px", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
                   + New Post
                 </button>
               </div>
@@ -1142,7 +1289,7 @@ export default function PuntHub() {
                   const c = CATEGORIES.find(x => x.id === cat);
                   return (
                     <button key={cat} onClick={() => setForumFilter(cat)}
-                      style={{ background: forumFilter === cat ? (c ? `${c.color}22` : "rgba(255,107,53,0.15)") : "rgba(255,255,255,0.03)", border: `1px solid ${forumFilter === cat ? (c?.color || "#FF6B35") : "rgba(255,255,255,0.08)"}`, borderRadius: 20, padding: "6px 12px", color: forumFilter === cat ? (c?.color || "#FF6B35") : "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 10, cursor: "pointer", whiteSpace: "nowrap", letterSpacing: 0.5 }}>
+                      style={{ background: forumFilter === cat ? (c ? `${c.color}22` : "rgba(67,97,238,0.15)") : "rgba(255,255,255,0.03)", border: `1px solid ${forumFilter === cat ? (c?.color || "#4361EE") : "rgba(255,255,255,0.08)"}`, borderRadius: 20, padding: "6px 12px", color: forumFilter === cat ? (c?.color || "#6B8EFF") : "rgba(255,255,255,0.4)", fontWeight: 600, fontSize: 10, cursor: "pointer", whiteSpace: "nowrap" }}>
                       {c ? `${c.icon} ${c.label}` : "All Topics"}
                     </button>
                   );
@@ -1150,13 +1297,13 @@ export default function PuntHub() {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {filteredPosts.map(post => <ForumPost key={post.id} post={post} />)}
-                {filteredPosts.length === 0 && <div style={{ textAlign: "center", padding: "40px 0", color: "rgba(255,255,255,0.2)", fontSize: 13, fontFamily: "'Barlow', sans-serif" }}>No posts in this category yet.</div>}
+                {filteredPosts.length === 0 && <div style={{ textAlign: "center", padding: "40px 0", color: "rgba(255,255,255,0.2)", fontSize: 13 }}>No posts in this category yet.</div>}
               </div>
               <div style={{ marginTop: 24, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
-                <h3 style={{ fontWeight: 800, marginBottom: 14, color: "#FF6B35", fontSize: 16, letterSpacing: 0.5 }}>🔥 Trending Topics</h3>
+                <h3 style={{ fontWeight: 700, marginBottom: 14, color: "#6B8EFF", fontSize: 16 }}>🔥 Trending Topics</h3>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
                   {["#Bitcoin200k", "#ChampionsLeague", "#AGI2025", "#MetGala", "#ZendayaEffect", "#NFLDraft", "#GoldAllTimeHigh", "#F1Season", "#Wimbledon", "#GrammyPredictions"].map(tag => (
-                    <span key={tag} style={{ background: "rgba(255,107,53,0.1)", border: "1px solid rgba(255,107,53,0.2)", borderRadius: 20, padding: "4px 10px", color: "#FF6B35", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>{tag}</span>
+                    <span key={tag} style={{ background: "rgba(67,97,238,0.1)", border: "1px solid rgba(67,97,238,0.2)", borderRadius: 20, padding: "4px 10px", color: "#6B8EFF", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>{tag}</span>
                   ))}
                 </div>
               </div>
@@ -1168,7 +1315,7 @@ export default function PuntHub() {
             <div className="tab-content">
               <div style={{ textAlign: "center", marginBottom: 24 }}>
                 <h2 style={{ fontSize: isMobile ? 30 : 42, fontWeight: 800, letterSpacing: 2 }}>🏆 LEADERBOARD</h2>
-                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, fontFamily: "'Barlow', sans-serif" }}>Top PuntHub predictors this season</p>
+                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>Top PuntHub predictors this season</p>
               </div>
 
               {/* Top 3 Podium */}
@@ -1192,13 +1339,13 @@ export default function PuntHub() {
 
               <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                 {LEADERBOARD.map(entry => (
-                  <div key={entry.rank} style={{ background: entry.isUser ? "rgba(255,107,53,0.08)" : "rgba(255,255,255,0.02)", border: `1px solid ${entry.isUser ? "rgba(255,107,53,0.3)" : "rgba(255,255,255,0.07)"}`, borderRadius: 10, padding: "12px 14px", display: "flex", alignItems: "center", gap: 12 }}>
+                  <div key={entry.rank} style={{ background: entry.isUser ? "rgba(67,97,238,0.08)" : "rgba(255,255,255,0.02)", border: `1px solid ${entry.isUser ? "rgba(67,97,238,0.3)" : "rgba(255,255,255,0.07)"}`, borderRadius: 10, padding: "12px 14px", display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ width: 26, textAlign: "center", fontSize: 14, flexShrink: 0 }}>
                       {entry.rank <= 3 ? ["🥇", "🥈", "🥉"][entry.rank - 1] : <span style={{ color: "rgba(255,255,255,0.3)", fontWeight: 700, fontSize: 12 }}>#{entry.rank}</span>}
                     </div>
                     <span style={{ fontSize: 20, flexShrink: 0 }}>{entry.avatar}</span>
-                    <span style={{ flex: 1, fontWeight: 700, color: entry.isUser ? "#FF6B35" : "#fff", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{entry.name}{entry.isUser && " (You)"}</span>
-                    <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, flexShrink: 0, fontFamily: "'Barlow', sans-serif" }}>{entry.wins}W</span>
+                    <span style={{ flex: 1, fontWeight: 700, color: entry.isUser ? "#4361EE" : "#fff", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{entry.name}{entry.isUser && " (You)"}</span>
+                    <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, flexShrink: 0 }}>{entry.wins}W</span>
                     <span style={{ color: "#FFD700", fontWeight: 800, fontSize: 14, flexShrink: 0 }}>{(entry.points / 1000).toFixed(1)}k</span>
                   </div>
                 ))}
@@ -1211,21 +1358,21 @@ export default function PuntHub() {
             <div className="tab-content">
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20, gap: 12, flexWrap: "wrap" }}>
                 <div>
-                  <h2 style={{ fontSize: isMobile ? 26 : 32, fontWeight: 800, letterSpacing: 1 }}>REWARDS <span style={{ color: "#FF6B35" }}>STORE</span></h2>
-                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>Redeem PuntPoints for real-world prizes</p>
+                  <h2 style={{ fontSize: isMobile ? 26 : 32, fontWeight: 800, letterSpacing: 1 }}>REWARDS <span style={{ color: "#4361EE" }}>STORE</span></h2>
+                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>Redeem PuntPoints for real-world prizes</p>
                 </div>
                 <div style={{ background: "rgba(255,215,0,0.1)", border: "1px solid rgba(255,215,0,0.3)", borderRadius: 14, padding: "8px 16px", display: "flex", gap: 7, alignItems: "center" }}>
                   <span>🏆</span>
                   <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 18 }}>{user?.points?.toLocaleString()}</span>
-                  <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>PP</span>
+                  <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>PP</span>
                 </div>
               </div>
 
-              <div style={{ background: "linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,107,53,0.08))", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 14, padding: "16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+              <div style={{ background: "linear-gradient(135deg, rgba(255,215,0,0.08), rgba(67,97,238,0.08))", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 14, padding: "16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
                 <span style={{ fontSize: 32, flexShrink: 0 }}>🎁</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ color: "#FFD700", fontWeight: 800, fontSize: 15, letterSpacing: 0.5 }}>SPONSORED GIVEAWAYS ACTIVE</div>
-                  <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>iPhone 16 Pro & PS5 giveaways end in 14 days!</div>
+                  <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>iPhone 16 Pro & PS5 giveaways end in 14 days!</div>
                 </div>
                 <div style={{ background: "rgba(255,215,0,0.15)", border: "1px solid rgba(255,215,0,0.3)", borderRadius: 8, padding: "6px 12px", color: "#FFD700", fontWeight: 700, fontSize: 12, flexShrink: 0 }}>🔥 5 Left</div>
               </div>
@@ -1243,10 +1390,10 @@ export default function PuntHub() {
                       <div style={{ fontWeight: 800, fontSize: 13, color: "#fff", marginBottom: 10, lineHeight: 1.3 }}>{reward.name}</div>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                         <div style={{ color: "#FFD700", fontWeight: 900, fontSize: 15 }}>{reward.points.toLocaleString()} PP</div>
-                        <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 10, fontFamily: "'Barlow', sans-serif" }}>{reward.stock} left</div>
+                        <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 10 }}>{reward.stock} left</div>
                       </div>
-                      <button onClick={() => done ? null : canAfford ? handleRedeem(reward) : showNotif(`Need ${(reward.points - user.points).toLocaleString()} more PP!`, "#FF6B35")}
-                        style={{ width: "100%", border: "none", borderRadius: 8, padding: "8px", background: done ? "rgba(52,211,153,0.1)" : canAfford ? "linear-gradient(135deg, #FF6B35, #FFD700)" : "rgba(255,255,255,0.05)", color: done ? "#34D399" : canAfford ? "#000" : "rgba(255,255,255,0.3)", fontWeight: 800, fontSize: 12, cursor: done ? "default" : "pointer", transition: "all 0.2s", letterSpacing: 0.5 }}>
+                      <button onClick={() => done ? null : canAfford ? handleRedeem(reward) : showNotif(`Need ${(reward.points - user.points).toLocaleString()} more PP!`, "#4361EE")}
+                        style={{ width: "100%", border: "none", borderRadius: 8, padding: "8px", background: done ? "rgba(52,211,153,0.1)" : canAfford ? "#4361EE" : "rgba(255,255,255,0.05)", color: done ? "#34D399" : canAfford ? "#fff" : "rgba(255,255,255,0.3)", fontWeight: 800, fontSize: 12, cursor: done ? "default" : "pointer", transition: "all 0.2s", letterSpacing: 0.5 }}>
                         {done ? "✓ Redeemed!" : canAfford ? "Redeem Now" : "Not enough PP"}
                       </button>
                     </div>
@@ -1264,8 +1411,8 @@ export default function PuntHub() {
                   {/* Header */}
                   <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20, gap: 12, flexWrap: "wrap" }}>
                     <div>
-                      <h2 style={{ fontSize: isMobile ? 26 : 34, fontWeight: 800, letterSpacing: 1 }}>⚔️ P2P <span style={{ color: "#FF6B35" }}>BETTING</span></h2>
-                      <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>Create private sessions and bet PuntCoins against friends</p>
+                      <h2 style={{ fontSize: isMobile ? 26 : 34, fontWeight: 800, letterSpacing: 1 }}>⚔️ P2P <span style={{ color: "#4361EE" }}>BETTING</span></h2>
+                      <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>Create private sessions and bet PuntCoins against friends</p>
                     </div>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                       <div style={{ background: "rgba(255,215,0,0.1)", border: "1px solid rgba(255,215,0,0.3)", borderRadius: 12, padding: "8px 14px", display: "flex", gap: 6, alignItems: "center" }}>
@@ -1273,13 +1420,13 @@ export default function PuntHub() {
                         <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 16 }}>{puntCoins.toLocaleString()}</span>
                         <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 10 }}>PC</span>
                       </div>
-                      <button onClick={() => setShowBuyCoins(true)} style={{ background: "linear-gradient(135deg, #FF6B35, #FFD700)", border: "none", borderRadius: 10, padding: "9px 16px", color: "#000", fontWeight: 800, fontSize: 12, cursor: "pointer", letterSpacing: 0.5 }}>+ Buy PC</button>
+                      <button onClick={() => setShowBuyCoins(true)} style={{ background: "#4361EE", border: "none", borderRadius: 10, padding: "9px 16px", color: "#fff", fontWeight: 700, fontSize: 12, cursor: "pointer", letterSpacing: 0.5 }}>+ Buy PC</button>
                     </div>
                   </div>
 
                   {/* How it works */}
-                  <div style={{ background: "linear-gradient(135deg, rgba(255,107,53,0.08), rgba(255,215,0,0.05))", border: "1px solid rgba(255,107,53,0.15)", borderRadius: 14, padding: "16px", marginBottom: 20 }}>
-                    <h3 style={{ fontWeight: 800, fontSize: 14, marginBottom: 12, color: "#FF6B35", letterSpacing: 0.5 }}>HOW IT WORKS</h3>
+                  <div style={{ background: "linear-gradient(135deg, rgba(67,97,238,0.08), rgba(255,215,0,0.05))", border: "1px solid rgba(67,97,238,0.15)", borderRadius: 14, padding: "16px", marginBottom: 20 }}>
+                    <h3 style={{ fontWeight: 800, fontSize: 14, marginBottom: 12, color: "#4361EE", letterSpacing: 0.5 }}>HOW IT WORKS</h3>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                       {[
                         ["1️⃣", "Create Session", "Set your stake and create a private bet"],
@@ -1291,7 +1438,7 @@ export default function PuntHub() {
                           <span style={{ fontSize: 16, flexShrink: 0 }}>{n}</span>
                           <div>
                             <div style={{ color: "#fff", fontWeight: 700, fontSize: 12 }}>{title}</div>
-                            <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontFamily: "'Barlow', sans-serif", lineHeight: 1.4 }}>{desc}</div>
+                            <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, lineHeight: 1.4 }}>{desc}</div>
                           </div>
                         </div>
                       ))}
@@ -1320,7 +1467,7 @@ export default function PuntHub() {
                           <div key={s.id} style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${s.status === "won" ? "rgba(52,211,153,0.3)" : s.status === "lost" ? "rgba(255,100,100,0.3)" : "rgba(255,255,255,0.08)"}`, borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }} onClick={() => { setActiveBetSession(s); setBetStep(s.status ? "result" : "session"); }}>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ fontWeight: 700, fontSize: 13, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.scenario.q}</div>
-                              <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontFamily: "'Barlow', sans-serif", marginTop: 2 }}>Stake: {s.stake} PC • {s.status ? s.status.toUpperCase() : "Active"}</div>
+                              <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, marginTop: 2 }}>Stake: {s.stake} PC • {s.status ? s.status.toUpperCase() : "Active"}</div>
                             </div>
                             <div style={{ color: s.status === "won" ? "#34D399" : s.status === "lost" ? "#FF6464" : "#FFD700", fontWeight: 900, fontSize: 16, flexShrink: 0 }}>
                               {s.status === "won" ? `+${s.stake * 2}` : s.status === "lost" ? `-${s.stake}` : `${s.stake * 2} pot`} 🪙
@@ -1367,21 +1514,21 @@ export default function PuntHub() {
           {/* ── PROFILE ── */}
           {activeTab === "profile" && (
             <div className="tab-content" style={{ maxWidth: 600, margin: "0 auto" }}>
-              <div style={{ background: "linear-gradient(135deg, rgba(255,107,53,0.1) 0%, rgba(255,215,0,0.05) 100%)", border: "1px solid rgba(255,107,53,0.2)", borderRadius: 16, padding: "20px 16px", marginBottom: 16, display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
-                <div style={{ width: 64, height: 64, background: "linear-gradient(135deg, #FF6B35, #FFD700)", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 900, color: "#000", flexShrink: 0 }}>
+              <div style={{ background: "linear-gradient(135deg, rgba(67,97,238,0.1) 0%, rgba(255,215,0,0.05) 100%)", border: "1px solid rgba(67,97,238,0.2)", borderRadius: 16, padding: "20px 16px", marginBottom: 16, display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+                <div style={{ width: 64, height: 64, background: "linear-gradient(135deg, #4361EE, #7B2FBE)", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
                   {user?.name?.[0]?.toUpperCase()}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.name}</h2>
-                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</p>
+                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</p>
                   <div style={{ display: "flex", gap: 16, marginTop: 10, flexWrap: "wrap" }}>
                     {[["🎯", Object.keys(predictions).length, "Predictions"], ["🏆", user?.points?.toLocaleString(), "PP"], ["📊", "#10", "Rank"]].map(([icon, val, label]) => (
                       <div key={label}>
                         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                           <span>{icon}</span>
-                          <span style={{ fontWeight: 900, fontSize: 18, color: "#FF6B35" }}>{val}</span>
+                          <span style={{ fontWeight: 700, fontSize: 18, color: "#6B8EFF" }}>{val}</span>
                         </div>
-                        <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 10, fontFamily: "'Barlow', sans-serif" }}>{label}</div>
+                        <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 10 }}>{label}</div>
                       </div>
                     ))}
                   </div>
@@ -1405,7 +1552,7 @@ export default function PuntHub() {
               <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "16px", marginBottom: 12 }}>
                 <h3 style={{ fontWeight: 800, marginBottom: 12, fontSize: 16, letterSpacing: 0.5 }}>Recent Predictions</h3>
                 {Object.keys(predictions).length === 0 ? (
-                  <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 12, textAlign: "center", padding: "16px 0", fontFamily: "'Barlow', sans-serif" }}>No predictions yet!</div>
+                  <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 12, textAlign: "center", padding: "16px 0" }}>No predictions yet!</div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {Object.entries(predictions).slice(0, 5).map(([eventId, optIdx]) => {
@@ -1417,7 +1564,7 @@ export default function PuntHub() {
                           <span style={{ flexShrink: 0 }}>{cat?.icon}</span>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{event.title}</div>
-                            <div style={{ fontSize: 10, color: "#FF6B35" }}>→ {event.options[optIdx]}</div>
+                            <div style={{ fontSize: 10, color: "#4361EE" }}>→ {event.options[optIdx]}</div>
                           </div>
                           <span style={{ color: "rgba(255,215,0,0.8)", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>Pending</span>
                         </div>
@@ -1429,14 +1576,14 @@ export default function PuntHub() {
 
               <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "16px" }}>
                 <h3 style={{ fontWeight: 800, marginBottom: 4, fontSize: 16, letterSpacing: 0.5 }}>Boost Your Points 🚀</h3>
-                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, marginBottom: 12, fontFamily: "'Barlow', sans-serif" }}>Complete social tasks for bonus PuntPoints</p>
+                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, marginBottom: 12 }}>Complete social tasks for bonus PuntPoints</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
                   {SOCIAL_TASKS.map(task => (
                     <div key={task.id} style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "9px 12px" }}>
                       <span style={{ fontSize: 16, flexShrink: 0 }}>{task.icon}</span>
-                      <span style={{ flex: 1, fontSize: 12, color: "rgba(255,255,255,0.65)", fontFamily: "'Barlow', sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{task.label}</span>
+                      <span style={{ flex: 1, fontSize: 12, color: "rgba(255,255,255,0.65)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{task.label}</span>
                       <span style={{ color: "#FFD700", fontWeight: 800, fontSize: 12, flexShrink: 0 }}>+{task.points}</span>
-                      <button onClick={() => showNotif(`Opening ${task.platform}...`)} style={{ background: "rgba(255,107,53,0.15)", border: "1px solid rgba(255,107,53,0.3)", borderRadius: 6, padding: "4px 10px", color: "#FF6B35", fontSize: 11, fontWeight: 700, cursor: "pointer", flexShrink: 0, letterSpacing: 0.5 }}>Go</button>
+                      <button onClick={() => showNotif(`Opening ${task.platform}...`)} style={{ background: "rgba(67,97,238,0.15)", border: "1px solid rgba(67,97,238,0.3)", borderRadius: 6, padding: "4px 10px", color: "#4361EE", fontSize: 11, fontWeight: 700, cursor: "pointer", flexShrink: 0, letterSpacing: 0.5 }}>Go</button>
                     </div>
                   ))}
                 </div>
@@ -1451,10 +1598,10 @@ export default function PuntHub() {
         <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100, background: "rgba(10,10,15,0.97)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", padding: "6px 0 max(6px, env(safe-area-inset-bottom))", flexShrink: 0 }}>
           {TABS.map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              style={{ flex: 1, background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "6px 4px", cursor: "pointer", color: activeTab === tab.id ? "#FF6B35" : "rgba(255,255,255,0.4)", transition: "color 0.2s" }}>
+              style={{ flex: 1, background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "6px 4px", cursor: "pointer", color: activeTab === tab.id ? "#4361EE" : "rgba(255,255,255,0.4)", transition: "color 0.2s" }}>
               <span style={{ fontSize: 20 }}>{tab.icon}</span>
               <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: 0.5 }}>{tab.label}</span>
-              {activeTab === tab.id && <div style={{ width: 20, height: 2, background: "#FF6B35", borderRadius: 1 }} />}
+              {activeTab === tab.id && <div style={{ width: 20, height: 2, background: "#4361EE", borderRadius: 1 }} />}
             </button>
           ))}
         </nav>
