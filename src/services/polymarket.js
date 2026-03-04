@@ -75,8 +75,10 @@ export function rollForwardDate(dateStr) {
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return dateStr;
   const now = new Date();
-  while (d <= now) {
+  let safety = 0;
+  while (d <= now && safety < 20) {
     d.setFullYear(d.getFullYear() + 1);
+    safety++;
   }
   return d.toISOString().split("T")[0];
 }
@@ -151,7 +153,7 @@ export async function fetchPolymarketEvents({ limit = 100 } = {}) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     const markets = Array.isArray(data) ? data : data.markets || [];
-    return markets.filter(isMarketValid).map(transformMarket).slice(0, 60);
+    return markets.filter(isMarketValid).map(transformMarket).slice(0, limit);
   } catch (e) {
     clearTimeout(tid);
     if (e.name !== "AbortError") {
@@ -187,7 +189,7 @@ export async function fetchPolymarketP2PScenarios({ limit = 60 } = {}) {
         marketId: m.id,
         source: "polymarket",
       }))
-      .slice(0, 30);
+      .slice(0, limit);
   } catch (e) {
     clearTimeout(tid);
     if (e.name !== "AbortError") {

@@ -495,21 +495,21 @@ function BuyCoinsModal({ onClose, onBuy }) {
   };
 
   // ── Coinbase Commerce ──
+  const [coinbaseAwaitingConfirm, setCoinbaseAwaitingConfirm] = useState(false);
   const doCoinbase = () => {
     const checkoutId = (typeof import.meta !== "undefined" && import.meta.env?.VITE_COINBASE_CHECKOUT_ID) || "";
     if (!checkoutId) { demoProcess(); return; }
-    const w = window.open(
+    window.open(
       `https://commerce.coinbase.com/checkout/${checkoutId}`,
       "_blank",
       "width=520,height=720,noopener"
     );
-    // Poll for the popup to close and credit coins
-    const poll = setInterval(() => {
-      if (!w || w.closed) { clearInterval(poll); onBuy(pkg.coins); }
-    }, 1000);
+    // Show a manual confirmation button; server-side webhook verification is required in production
+    setCoinbaseAwaitingConfirm(true);
   };
 
   // ── Magic Link (passwordless + crypto on-ramp) ──
+  const [magicAwaitingConfirm, setMagicAwaitingConfirm] = useState(false);
   const doMagic = () => {
     const apiKey = (typeof import.meta !== "undefined" && import.meta.env?.VITE_MAGIC_PUBLISHABLE_KEY) || "";
     if (!apiKey) { demoProcess(); return; }
@@ -519,14 +519,8 @@ function BuyCoinsModal({ onClose, onBuy }) {
       "_blank",
       "width=440,height=620,noopener"
     );
-    // After successful auth Magic redirects back; production flow uses their SDK
-    setProcessing(true);
-    const poll = setInterval(() => {
-      // In production replace with Magic SDK token verification
-      clearInterval(poll);
-      setProcessing(false);
-      onBuy(pkg.coins);
-    }, 5000);
+    // Show a manual confirmation button; production flow verifies via Magic SDK token
+    setMagicAwaitingConfirm(true);
   };
 
   // ── Demo / sandbox fallback ──
@@ -630,10 +624,16 @@ function BuyCoinsModal({ onClose, onBuy }) {
               {pkg.bonus && <span style={{ color: "#34D399", fontSize: 11, marginLeft: 8 }}>{pkg.bonus}</span>}
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginLeft: 8 }}>— {pkg.label}</span>
             </div>
-            {processing
-              ? <div style={{ textAlign: "center", padding: "18px 0", color: "rgba(255,255,255,0.35)", fontSize: 13 }}>⏳ Waiting for payment…</div>
-              : <button onClick={doCoinbase} style={{ ...btnBase, background: "linear-gradient(135deg, #0052FF, #1652F0)", color: "#fff" }}>₿ Pay with Coinbase Commerce</button>
-            }
+            {coinbaseAwaitingConfirm ? (
+              <div>
+                <div style={{ background: "rgba(0,200,0,0.07)", border: "1px solid rgba(0,200,0,0.2)", borderRadius: 10, padding: "12px 14px", marginBottom: 12, color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'Barlow', sans-serif", lineHeight: 1.5 }}>
+                  Complete payment in the Coinbase Commerce window, then click below.
+                </div>
+                <button onClick={() => { setCoinbaseAwaitingConfirm(false); onBuy(pkg.coins); }} style={{ ...btnBase, background: "linear-gradient(135deg, #0052FF, #1652F0)", color: "#fff" }}>✅ I've Completed Payment</button>
+              </div>
+            ) : (
+              <button onClick={doCoinbase} style={{ ...btnBase, background: "linear-gradient(135deg, #0052FF, #1652F0)", color: "#fff" }}>₿ Pay with Coinbase Commerce</button>
+            )}
           </div>
         )}
 
@@ -672,10 +672,16 @@ function BuyCoinsModal({ onClose, onBuy }) {
               {pkg.bonus && <span style={{ color: "#34D399", fontSize: 11, marginLeft: 8 }}>{pkg.bonus}</span>}
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginLeft: 8 }}>— {pkg.label}</span>
             </div>
-            {processing
-              ? <div style={{ textAlign: "center", padding: "18px 0", color: "rgba(255,255,255,0.35)", fontSize: 13 }}>⏳ Awaiting Magic authentication…</div>
-              : <button onClick={doMagic} style={{ ...btnBase, background: "linear-gradient(135deg, #6400FF, #A855F7)", color: "#fff" }}>✨ Continue with Magic</button>
-            }
+            {magicAwaitingConfirm ? (
+              <div>
+                <div style={{ background: "rgba(100,0,255,0.07)", border: "1px solid rgba(100,0,255,0.2)", borderRadius: 10, padding: "12px 14px", marginBottom: 12, color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'Barlow', sans-serif", lineHeight: 1.5 }}>
+                  Complete payment in the Magic window, then click below.
+                </div>
+                <button onClick={() => { setMagicAwaitingConfirm(false); onBuy(pkg.coins); }} style={{ ...btnBase, background: "linear-gradient(135deg, #6400FF, #A855F7)", color: "#fff" }}>✅ I've Completed Payment</button>
+              </div>
+            ) : (
+              <button onClick={doMagic} style={{ ...btnBase, background: "linear-gradient(135deg, #6400FF, #A855F7)", color: "#fff" }}>✨ Continue with Magic</button>
+            )}
           </div>
         )}
 
@@ -949,7 +955,9 @@ export default function PuntHub() {
     fetchPolymarketP2PScenarios().then(scenarios => { if (scenarios.length > 0) setPolyScenarios(scenarios); });
   }, []);
 
-  // Credit PuntCoins after Payfast redirect (return_url contains ?pc_grant=<amount>)
+  // Credit PuntCoins after Payfast redirect (return_url contains ?pc_grant=<amount>).
+  // NOTE: In production, validate this param server-side (HMAC signature from Payfast ITN)
+  // before crediting coins; the current client-side cap is a beta-only safeguard.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const grantedCoins = parseInt(params.get("pc_grant") || "0", 10);
