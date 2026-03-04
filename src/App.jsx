@@ -458,10 +458,11 @@ function BuyCoinsModal({ onClose, onBuy }) {
 function CreateBetSession({ puntCoins, onCreated, onBuyCoins }) {
   const [stake, setStake] = useState(50);
   const presets = [25, 50, 100, 250, 500];
-  const scenario = P2P_SCENARIOS[Math.floor(Math.random() * P2P_SCENARIOS.length)];
+  const [previewScenario] = useState(() => P2P_SCENARIOS[Math.floor(Math.random() * P2P_SCENARIOS.length)]);
 
   const createSession = () => {
     if (puntCoins < stake) { onBuyCoins(); return; }
+    const scenario = P2P_SCENARIOS[Math.floor(Math.random() * P2P_SCENARIOS.length)];
     const session = {
       id: Date.now(),
       stake,
@@ -491,9 +492,9 @@ function CreateBetSession({ puntCoins, onCreated, onBuyCoins }) {
 
       <div style={{ background: "rgba(255,107,53,0.06)", border: "1px solid rgba(255,107,53,0.15)", borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}>
         <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 4 }}>PREVIEW SCENARIO</div>
-        <div style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>{scenario.q}</div>
+        <div style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>{previewScenario.q}</div>
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-          {scenario.options.map(opt => (
+          {previewScenario.options.map(opt => (
             <span key={opt} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, padding: "4px 10px", color: "rgba(255,255,255,0.6)", fontSize: 11 }}>{opt}</span>
           ))}
         </div>
@@ -525,13 +526,20 @@ function BetSession({ session, puntCoins, onResult, onBack }) {
     if (resolving) return;
     setUserChoice(choice);
     setResolving(true);
-    const oppChoice = session.scenario.options[Math.floor(Math.random() * session.scenario.options.length)];
+    const opponentChoice = session.scenario.options[Math.floor(Math.random() * session.scenario.options.length)];
     setTimeout(() => {
-      const winner = Math.random() > 0.5 ? "user" : "opponent";
+      // Randomly determine the actual outcome, then compare picks
+      const actualOutcome = session.scenario.options[Math.floor(Math.random() * session.scenario.options.length)];
+      const userCorrect = choice === actualOutcome;
+      const opponentCorrect = opponentChoice === actualOutcome;
+      // If both or neither correct, random tiebreak; otherwise the correct predictor wins
+      const winner = userCorrect === opponentCorrect
+        ? (Math.random() > 0.5 ? "user" : "opponent")
+        : userCorrect ? "user" : "opponent";
       const updatedSession = {
         ...session,
         userChoice: choice,
-        opponentChoice: oppChoice,
+        opponentChoice,
         status: winner === "user" ? "won" : "lost",
         winner,
       };
@@ -596,7 +604,8 @@ function BetResult({ session, puntCoins, onRematch, onBack }) {
   const startRematch = () => {
     if (puntCoins < session.stake) return;
     const usedIdx = P2P_SCENARIOS.findIndex(s => s.q === session.scenario.q);
-    const nextIdx = (usedIdx + 1 + Math.floor(Math.random() * (P2P_SCENARIOS.length - 1))) % P2P_SCENARIOS.length;
+    const safeUsedIdx = usedIdx === -1 ? 0 : usedIdx;
+    const nextIdx = (safeUsedIdx + 1 + Math.floor(Math.random() * (P2P_SCENARIOS.length - 1))) % P2P_SCENARIOS.length;
     const rematchSession = {
       id: Date.now(),
       stake: session.stake,
@@ -683,7 +692,7 @@ export default function PuntHub() {
   const [notification, setNotification] = useState(null);
   const [redeemed, setRedeemed] = useState({});
   const [isMobile, setIsMobile] = useState(false);
-  const [puntCoins, setPuntCoins] = useState(0);
+  const [puntCoins, setPuntCoins] = useState(100);
   const [showBuyCoins, setShowBuyCoins] = useState(false);
   const [bettingSessions, setBettingSessions] = useState([]);
   const [activeBetSession, setActiveBetSession] = useState(null);
