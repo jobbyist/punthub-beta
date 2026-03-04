@@ -254,6 +254,13 @@ function ForumPost({ post }) {
 }
 
 // ─── LANDING PAGE ─────────────────────────────────────────────────────────────
+const LANDING_STATS = [
+  ["80+", "Live Events"],
+  ["10k+", "Community Members"],
+  ["500+", "Rewards Redeemed"],
+  ["#1", "SA Prediction Hub"],
+];
+
 function LandingPage({ onStart }) {
   return (
     <div style={{ minHeight: "100vh", minHeight: "100dvh", background: "#f4f5f7", fontFamily: "'Inter', sans-serif", color: "#0A0A2E", overflowX: "hidden" }}>
@@ -302,7 +309,7 @@ function LandingPage({ onStart }) {
         </div>
         {/* Stats row */}
         <div style={{ display: "flex", gap: 40, justifyContent: "center", marginTop: 56, flexWrap: "wrap" }}>
-          {[["80+", "Live Events"], ["10k+", "Community Members"], ["500+", "Rewards Redeemed"], ["#1", "SA Prediction Hub"]].map(([val, label]) => (
+          {LANDING_STATS.map(([val, label]) => (
             <div key={label} style={{ textAlign: "center" }}>
               <div style={{ fontSize: 28, fontWeight: 800, color: "#4361EE" }}>{val}</div>
               <div style={{ fontSize: 13, color: "#8889a8", fontWeight: 500, marginTop: 2 }}>{label}</div>
