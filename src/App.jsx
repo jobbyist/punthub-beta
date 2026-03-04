@@ -47,6 +47,12 @@ const CATEGORIES = [
   { id: "trivia", label: "Trivia", icon: "🧠", color: "#34D399" },
   { id: "history", label: "History", icon: "📜", color: "#FB7185" },
   { id: "markets", label: "Markets", icon: "📈", color: "#10B981" },
+  { id: "trending", label: "Trending", icon: "🔥", color: "#FF4444" },
+  { id: "breaking", label: "Breaking News", icon: "📰", color: "#FF8C00" },
+  { id: "popcult", label: "Pop Culture", icon: "🎭", color: "#FF69B4" },
+  { id: "movies", label: "Movies & TV", icon: "🎬", color: "#9B59B6" },
+  { id: "gaming", label: "Gaming", icon: "🕹️", color: "#2ECC71" },
+  { id: "science", label: "Science", icon: "🔬", color: "#1ABC9C" },
 ];
 
 const EVENTS = [
@@ -74,6 +80,34 @@ const EVENTS = [
   { id: 22, cat: "trivia", title: "Oldest capital city in the world?", desc: "Which city holds the record as oldest continuously inhabited capital?", options: ["Damascus", "Athens", "Cairo", "Jerusalem"], points: 300, ends: "2025-06-30", difficulty: "Medium", votes: [4200, 2900, 3800, 2100] },
   { id: 23, cat: "history", title: "What ended the Cold War?", desc: "Which event is historically considered the definitive end?", options: ["Berlin Wall (1989)", "USSR Dissolved (1991)", "German Reunification", "Malta Summit (1989)"], points: 350, ends: "2025-06-30", difficulty: "Medium", votes: [5800, 7200, 3100, 1400] },
   { id: 24, cat: "history", title: "Next UNESCO World Heritage Site", desc: "Which site receives UNESCO status in 2025's announcement?", options: ["Babylon, Iraq", "Inca Qhapaq Ñan", "Silk Road extension", "Surprise nomination"], points: 400, ends: "2025-07-31", difficulty: "Hard", votes: [1800, 2100, 1400, 2800] },
+  { id: 25, cat: "trending", title: "Most Viral Moment of 2025", desc: "What will dominate social media timelines in 2025?", options: ["AI deepfake scandal", "Sports upset", "Celebrity feud", "Political gaffe"], points: 500, ends: "2025-12-31", difficulty: "Medium", votes: [3200, 4100, 5800, 2900], trending: true },
+  { id: 26, cat: "trending", title: "Next Platform to Surpass 1B Users", desc: "Which platform hits 1 billion monthly users next?", options: ["Threads", "Bluesky", "Mastodon", "BeReal"], points: 700, ends: "2025-12-31", difficulty: "Hard", votes: [5200, 3100, 1400, 900], trending: true },
+  { id: 27, cat: "breaking", title: "Next G7 Emergency Summit Topic", desc: "What crisis will force an emergency G7 meeting in 2025?", options: ["AI Regulation", "Middle East Escalation", "Global Recession", "Climate Disaster"], points: 900, ends: "2025-12-31", difficulty: "Hard", votes: [4100, 5800, 3200, 2900] },
+  { id: 28, cat: "breaking", title: "Next Major Cyber Attack Target", desc: "Which sector faces the largest cyberattack of 2025?", options: ["Financial System", "Power Grid", "Healthcare", "Government"], points: 800, ends: "2025-12-31", difficulty: "Hard", votes: [5100, 2800, 3900, 4200] },
+  { id: 29, cat: "popcult", title: "Biggest Fashion Trend of 2025", desc: "What dominates street style and runways in 2025?", options: ["Y2K revival", "Gorpcore 2.0", "Quiet luxury", "Maximalism"], points: 400, ends: "2025-12-31", difficulty: "Easy", votes: [4800, 2100, 5900, 3200], trending: true },
+  { id: 30, cat: "popcult", title: "Most Followed New Celebrity of 2025", desc: "Who becomes the breakout social media star of the year?", options: ["AI-generated influencer", "Sports rookie", "Reality TV star", "Indie musician"], points: 500, ends: "2025-12-31", difficulty: "Medium", votes: [3900, 4200, 5100, 2800] },
+  { id: 31, cat: "movies", title: "Highest Grossing Film 2025", desc: "Which film tops the global box office in 2025?", options: ["Avatar 3", "Marvel Phase 6", "Mission Impossible 8", "Minecraft Movie"], points: 600, ends: "2025-12-31", difficulty: "Medium", votes: [4200, 5800, 2100, 3900], trending: true },
+  { id: 32, cat: "movies", title: "Oscar Best Picture 2026", desc: "Which 2025 release wins Best Picture at the 2026 Oscars?", options: ["A24 Drama", "Christopher Nolan Epic", "International Film", "Biographical Film"], points: 800, ends: "2026-03-01", difficulty: "Hard", votes: [4800, 6200, 3100, 2900] },
+  { id: 33, cat: "movies", title: "Next Big Netflix Original", desc: "What genre dominates Netflix's biggest hit of 2025?", options: ["True Crime", "Fantasy Epic", "Political Thriller", "Sci-Fi Series"], points: 500, ends: "2025-12-31", difficulty: "Medium", votes: [3200, 5100, 4200, 3800] },
+  { id: 34, cat: "gaming", title: "Game of the Year 2025", desc: "Which game wins the most prestigious GOTY award?", options: ["GTA VI", "Elder Scrolls VI", "Fable Reboot", "Metroid Prime 4"], points: 900, ends: "2025-12-31", difficulty: "Hard", votes: [8200, 3100, 2800, 4200], trending: true },
+  { id: 35, cat: "gaming", title: "Next Console War Winner", desc: "Which console leads in sales by end of 2025?", options: ["PS5 Pro", "Xbox Series X2", "Nintendo Switch 2", "Steam Deck 2"], points: 700, ends: "2025-12-31", difficulty: "Medium", votes: [4200, 2100, 7800, 1900] },
+  { id: 36, cat: "science", title: "First Human Mars Mission Date", desc: "When will the first crewed Mars mission launch?", options: ["2026", "2027-2028", "2029-2030", "After 2030"], points: 1000, ends: "2025-12-31", difficulty: "Hard", votes: [1800, 3200, 4900, 5100] },
+  { id: 37, cat: "science", title: "Breakthrough Cancer Treatment 2025", desc: "Which therapy achieves the biggest clinical milestone?", options: ["mRNA Vaccines", "CAR-T Cell", "CRISPR Gene Edit", "AI-designed Drug"], points: 800, ends: "2025-12-31", difficulty: "Hard", votes: [4200, 3800, 5100, 4900] },
+];
+
+const P2P_SCENARIOS = [
+  { q: "Who will win this coin flip?", options: ["Heads", "Tails"] },
+  { q: "Which team wins the next Champions League match tonight?", options: ["Home Team", "Away Team"] },
+  { q: "Will Bitcoin be above $100k at midnight UTC tonight?", options: ["Yes", "No"] },
+  { q: "Who gets eliminated next on the current reality TV season?", options: ["Contestant A", "Contestant B"] },
+  { q: "Will the stock market close up or down today?", options: ["Up", "Down"] },
+  { q: "Who scores first in the next major football match?", options: ["Player A", "Player B"] },
+  { q: "Will there be major breaking news in the next 24h?", options: ["Yes", "No"] },
+  { q: "Who wins the next award show's biggest prize?", options: ["Favorite", "Underdog"] },
+  { q: "Which crypto gains more % today?", options: ["Bitcoin", "Ethereum"] },
+  { q: "Will the weather forecast be correct tomorrow?", options: ["Yes, accurate", "No, surprise weather"] },
+  { q: "Who wins the next tennis grand slam match?", options: ["Top Seed", "Underdog"] },
+  { q: "Will the next viral meme be about a person or an animal?", options: ["Person", "Animal"] },
 ];
 
 const FORUM_POSTS = [
@@ -382,6 +416,271 @@ function Onboarding({ onComplete }) {
   );
 }
 
+// ─── BUY COINS MODAL ──────────────────────────────────────────────────────────
+function BuyCoinsModal({ onClose, onBuy }) {
+  const packages = [
+    { coins: 100, price: "$0.99", bonus: "" },
+    { coins: 500, price: "$3.99", bonus: "+50 Bonus" },
+    { coins: 1200, price: "$8.99", bonus: "+200 Bonus" },
+    { coins: 3000, price: "$19.99", bonus: "+600 Bonus" },
+  ];
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div style={{ background: "#13131A", border: "1px solid rgba(255,215,0,0.3)", borderRadius: 20, padding: "24px 20px", width: "100%", maxWidth: 400, maxHeight: "90vh", overflowY: "auto" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div>
+            <h2 style={{ color: "#FFD700", fontWeight: 900, fontSize: 22, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 }}>💰 BUY PUNTCOINS</h2>
+            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>Used for peer-to-peer betting sessions</p>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 22, cursor: "pointer" }}>✕</button>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {packages.map(pkg => (
+            <button key={pkg.coins} onClick={() => onBuy(pkg.coins)} style={{ background: "rgba(255,215,0,0.06)", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", transition: "all 0.2s" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 22 }}>🪙</span>
+                <div style={{ textAlign: "left" }}>
+                  <div style={{ color: "#FFD700", fontWeight: 900, fontSize: 18, fontFamily: "'Barlow Condensed', sans-serif" }}>{pkg.coins.toLocaleString()} PC</div>
+                  {pkg.bonus && <div style={{ color: "#34D399", fontSize: 10, fontWeight: 700 }}>{pkg.bonus}</div>}
+                </div>
+              </div>
+              <div style={{ background: "linear-gradient(135deg, #FF6B35, #FFD700)", borderRadius: 8, padding: "6px 14px", color: "#000", fontWeight: 800, fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif" }}>{pkg.price}</div>
+            </button>
+          ))}
+        </div>
+        <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 9, textAlign: "center", marginTop: 16, fontFamily: "'Barlow', sans-serif" }}>PuntCoins are virtual currency for entertainment purposes. No real money involved in beta.</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── CREATE BET SESSION ───────────────────────────────────────────────────────
+function CreateBetSession({ puntCoins, onCreated, onBuyCoins }) {
+  const [stake, setStake] = useState(50);
+  const presets = [25, 50, 100, 250, 500];
+  const [previewScenario] = useState(() => P2P_SCENARIOS[Math.floor(Math.random() * P2P_SCENARIOS.length)]);
+
+  const createSession = () => {
+    if (puntCoins < stake) { onBuyCoins(); return; }
+    const scenario = P2P_SCENARIOS[Math.floor(Math.random() * P2P_SCENARIOS.length)];
+    const session = {
+      id: Date.now(),
+      stake,
+      scenario,
+      createdAt: new Date().toISOString(),
+      status: null,
+      round: 1,
+      userChoice: null,
+      opponentChoice: null,
+    };
+    onCreated(session);
+  };
+
+  return (
+    <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "20px 16px" }}>
+      <h3 style={{ fontWeight: 800, fontSize: 16, marginBottom: 16, letterSpacing: 0.5 }}>🎯 CREATE NEW BET SESSION</h3>
+
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, display: "block", marginBottom: 8, letterSpacing: 1 }}>YOUR STAKE (PC)</label>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+          {presets.map(p => (
+            <button key={p} onClick={() => setStake(p)} style={{ background: stake === p ? "rgba(255,107,53,0.2)" : "rgba(255,255,255,0.03)", border: `1px solid ${stake === p ? "#FF6B35" : "rgba(255,255,255,0.1)"}`, borderRadius: 8, padding: "7px 14px", color: stake === p ? "#FF6B35" : "rgba(255,255,255,0.5)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>{p}</button>
+          ))}
+        </div>
+        <input type="number" value={stake} onChange={e => setStake(Math.max(1, parseInt(e.target.value) || 1))} style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 14px", color: "#fff", fontSize: 15, fontFamily: "'Barlow Condensed', sans-serif", outline: "none" }} />
+      </div>
+
+      <div style={{ background: "rgba(255,107,53,0.06)", border: "1px solid rgba(255,107,53,0.15)", borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}>
+        <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 4 }}>PREVIEW SCENARIO</div>
+        <div style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>{previewScenario.q}</div>
+        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+          {previewScenario.options.map(opt => (
+            <span key={opt} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, padding: "4px 10px", color: "rgba(255,255,255,0.6)", fontSize: 11 }}>{opt}</span>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>Total pot if opponent joins: <strong style={{ color: "#FFD700" }}>{stake * 2} PC</strong></span>
+      </div>
+
+      <button onClick={createSession} style={{ width: "100%", background: puntCoins >= stake ? "linear-gradient(135deg, #FF6B35, #FFD700)" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: puntCoins >= stake ? "#000" : "rgba(255,255,255,0.3)", fontWeight: 800, fontSize: 15, cursor: "pointer", letterSpacing: 0.5, fontFamily: "'Barlow Condensed', sans-serif" }}>
+        {puntCoins >= stake ? `DEPLOY SESSION (${stake} PC) →` : "INSUFFICIENT PC — BUY MORE"}
+      </button>
+    </div>
+  );
+}
+
+// ─── BET SESSION ──────────────────────────────────────────────────────────────
+function BetSession({ session, puntCoins, onResult, onBack }) {
+  const [userChoice, setUserChoice] = useState(null);
+  const [opponentJoined, setOpponentJoined] = useState(false);
+  const [resolving, setResolving] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setOpponentJoined(true), 2000);
+    return () => clearTimeout(t);
+  }, []);
+
+  const resolve = (choice) => {
+    if (resolving) return;
+    setUserChoice(choice);
+    setResolving(true);
+    const opponentChoice = session.scenario.options[Math.floor(Math.random() * session.scenario.options.length)];
+    setTimeout(() => {
+      // Randomly determine the actual outcome, then compare picks
+      const actualOutcome = session.scenario.options[Math.floor(Math.random() * session.scenario.options.length)];
+      const userCorrect = choice === actualOutcome;
+      const opponentCorrect = opponentChoice === actualOutcome;
+      // If both or neither correct, random tiebreak; otherwise the correct predictor wins
+      const winner = userCorrect === opponentCorrect
+        ? (Math.random() > 0.5 ? "user" : "opponent")
+        : userCorrect ? "user" : "opponent";
+      const updatedSession = {
+        ...session,
+        userChoice: choice,
+        opponentChoice,
+        status: winner === "user" ? "won" : "lost",
+        winner,
+      };
+      onResult(winner, updatedSession);
+    }, 1500);
+  };
+
+  return (
+    <div>
+      <button onClick={onBack} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 13, cursor: "pointer", marginBottom: 16, display: "flex", alignItems: "center", gap: 6, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>← BACK TO LOBBY</button>
+
+      <div style={{ background: "linear-gradient(135deg, rgba(255,107,53,0.1), rgba(255,215,0,0.05))", border: "1px solid rgba(255,107,53,0.2)", borderRadius: 16, padding: "20px 16px", marginBottom: 16, textAlign: "center" }}>
+        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, letterSpacing: 1, marginBottom: 6 }}>ROUND {session.round} • LIVE BET</div>
+        <div style={{ color: "#FFD700", fontWeight: 900, fontSize: 28, fontFamily: "'Barlow Condensed', sans-serif", marginBottom: 4 }}>{session.stake * 2} PC POT</div>
+        <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>Winner takes all</div>
+      </div>
+
+      <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "18px 16px", marginBottom: 16 }}>
+        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, letterSpacing: 1, marginBottom: 10 }}>PREDICTION SCENARIO</div>
+        <h3 style={{ fontSize: 18, fontWeight: 800, color: "#fff", marginBottom: 16, lineHeight: 1.3, fontFamily: "'Barlow Condensed', sans-serif" }}>{session.scenario.q}</h3>
+
+        {!opponentJoined ? (
+          <div style={{ textAlign: "center", padding: "20px 0" }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>⏳</div>
+            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, fontFamily: "'Barlow', sans-serif" }}>Waiting for opponent to join...</div>
+            <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, marginTop: 4, fontFamily: "'Barlow', sans-serif" }}>Session ID: #{session.id}</div>
+          </div>
+        ) : (
+          <div>
+            <div style={{ background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.2)", borderRadius: 8, padding: "8px 12px", marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+              <span>✅</span>
+              <span style={{ color: "#34D399", fontSize: 12, fontWeight: 700 }}>Opponent has joined! Both stakes in pool.</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              {session.scenario.options.map((opt, i) => (
+                <button key={i} onClick={() => !userChoice && !resolving && resolve(opt)}
+                  style={{ background: userChoice === opt ? "rgba(255,107,53,0.2)" : "rgba(255,255,255,0.04)", border: `2px solid ${userChoice === opt ? "#FF6B35" : "rgba(255,255,255,0.1)"}`, borderRadius: 12, padding: "16px 12px", color: userChoice === opt ? "#FF6B35" : "#fff", fontWeight: 800, fontSize: 15, cursor: userChoice ? "default" : "pointer", transition: "all 0.2s", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5 }}>
+                  {opt}
+                </button>
+              ))}
+            </div>
+            {resolving && (
+              <div style={{ textAlign: "center", marginTop: 16, color: "rgba(255,255,255,0.5)", fontSize: 13, fontFamily: "'Barlow', sans-serif" }}>🎲 Resolving outcome...</div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", padding: "0 4px" }}>
+        <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>You wagered: <strong style={{ color: "#FFD700" }}>{session.stake} PC</strong></div>
+        <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>To win: <strong style={{ color: "#34D399" }}>{session.stake * 2} PC</strong></div>
+      </div>
+    </div>
+  );
+}
+
+// ─── BET RESULT ───────────────────────────────────────────────────────────────
+function BetResult({ session, puntCoins, onRematch, onBack }) {
+  const won = session.status === "won";
+  const isRematch = session.round > 1;
+
+  const startRematch = () => {
+    if (puntCoins < session.stake) return;
+    const usedIdx = P2P_SCENARIOS.findIndex(s => s.q === session.scenario.q);
+    const safeUsedIdx = usedIdx === -1 ? 0 : usedIdx;
+    const nextIdx = (safeUsedIdx + 1 + Math.floor(Math.random() * (P2P_SCENARIOS.length - 1))) % P2P_SCENARIOS.length;
+    const rematchSession = {
+      id: Date.now(),
+      stake: session.stake,
+      scenario: P2P_SCENARIOS[nextIdx],
+      createdAt: new Date().toISOString(),
+      status: null,
+      round: session.round + 1,
+      userChoice: null,
+      opponentChoice: null,
+      isRematch: true,
+    };
+    onRematch(rematchSession);
+  };
+
+  return (
+    <div>
+      <button onClick={onBack} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 13, cursor: "pointer", marginBottom: 16, display: "flex", alignItems: "center", gap: 6, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>← BACK TO LOBBY</button>
+
+      <div style={{ textAlign: "center", padding: "32px 16px", background: won ? "linear-gradient(135deg, rgba(52,211,153,0.1), rgba(255,215,0,0.05))" : "linear-gradient(135deg, rgba(255,100,100,0.1), rgba(255,107,53,0.05))", border: `1px solid ${won ? "rgba(52,211,153,0.3)" : "rgba(255,100,100,0.3)"}`, borderRadius: 16, marginBottom: 16 }}>
+        <div style={{ fontSize: 56, marginBottom: 12 }}>{won ? "🏆" : "💔"}</div>
+        <h2 style={{ fontSize: 32, fontWeight: 900, color: won ? "#34D399" : "#FF6464", letterSpacing: 2, fontFamily: "'Barlow Condensed', sans-serif", marginBottom: 8 }}>
+          {won ? "YOU WIN!" : "YOU LOSE!"}
+        </h2>
+        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, fontFamily: "'Barlow', sans-serif", marginBottom: 16 }}>
+          {won ? `You predicted correctly!` : `Better luck next time.`}
+        </div>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,215,0,0.1)", border: "1px solid rgba(255,215,0,0.3)", borderRadius: 12, padding: "10px 20px" }}>
+          <span style={{ fontSize: 20 }}>🪙</span>
+          <span style={{ color: won ? "#34D399" : "#FF6464", fontWeight: 900, fontSize: 28, fontFamily: "'Barlow Condensed', sans-serif" }}>
+            {won ? `+${session.stake * 2}` : `-${session.stake}`} PC
+          </span>
+        </div>
+      </div>
+
+      <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "14px 16px", marginBottom: 16 }}>
+        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, letterSpacing: 1, marginBottom: 10 }}>ROUND SUMMARY</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 8 }}>{session.scenario.q}</div>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ background: "rgba(255,107,53,0.1)", border: "1px solid rgba(255,107,53,0.2)", borderRadius: 8, padding: "6px 12px" }}>
+            <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: 1 }}>YOUR PICK</div>
+            <div style={{ color: "#FF6B35", fontWeight: 700, fontSize: 13 }}>{session.userChoice}</div>
+          </div>
+          <div style={{ background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 8, padding: "6px 12px" }}>
+            <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: 1 }}>OPPONENT</div>
+            <div style={{ color: "#A855F7", fontWeight: 700, fontSize: 13 }}>{session.opponentChoice}</div>
+          </div>
+        </div>
+      </div>
+
+      {!isRematch && (
+        <div style={{ background: "rgba(255,215,0,0.05)", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 14, padding: "16px", marginBottom: 14 }}>
+          <h3 style={{ fontWeight: 800, fontSize: 15, color: "#FFD700", marginBottom: 6, letterSpacing: 0.5 }}>🔁 REMATCH AVAILABLE</h3>
+          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, fontFamily: "'Barlow', sans-serif", marginBottom: 14, lineHeight: 1.5 }}>
+            Challenge to a final round! Both players deposit <strong style={{ color: "#FFD700" }}>{session.stake} PC</strong> again. A new scenario is generated — winner takes the entire pot of <strong style={{ color: "#34D399" }}>{session.stake * 2} PC</strong>, loser gets nothing.
+          </p>
+          <button onClick={startRematch} disabled={puntCoins < session.stake}
+            style={{ width: "100%", background: puntCoins >= session.stake ? "linear-gradient(135deg, #FFD700, #FF6B35)" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: puntCoins >= session.stake ? "#000" : "rgba(255,255,255,0.3)", fontWeight: 800, fontSize: 15, cursor: puntCoins >= session.stake ? "pointer" : "not-allowed", letterSpacing: 0.5, fontFamily: "'Barlow Condensed', sans-serif" }}>
+            {puntCoins >= session.stake ? `🔁 REMATCH (${session.stake} PC) →` : "INSUFFICIENT PC FOR REMATCH"}
+          </button>
+        </div>
+      )}
+
+      {isRematch && (
+        <div style={{ textAlign: "center", padding: "12px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, marginBottom: 14 }}>
+          <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, fontFamily: "'Barlow', sans-serif" }}>This was the final rematch round. No further rematches available.</div>
+        </div>
+      )}
+
+      <button onClick={onBack} style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "12px", color: "rgba(255,255,255,0.6)", fontWeight: 700, fontSize: 13, cursor: "pointer", letterSpacing: 0.5, fontFamily: "'Barlow Condensed', sans-serif" }}>
+        BACK TO LOBBY
+      </button>
+    </div>
+  );
+}
+
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function PuntHub() {
   const [screen, setScreen] = useState("onboarding");
@@ -393,6 +692,11 @@ export default function PuntHub() {
   const [notification, setNotification] = useState(null);
   const [redeemed, setRedeemed] = useState({});
   const [isMobile, setIsMobile] = useState(false);
+  const [puntCoins, setPuntCoins] = useState(100);
+  const [showBuyCoins, setShowBuyCoins] = useState(false);
+  const [bettingSessions, setBettingSessions] = useState([]);
+  const [activeBetSession, setActiveBetSession] = useState(null);
+  const [betStep, setBetStep] = useState("lobby");
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640);
@@ -434,6 +738,7 @@ export default function PuntHub() {
     { id: "forum", label: "Forum", icon: "💬" },
     { id: "leaderboard", label: "Ranks", icon: "🏆" },
     { id: "rewards", label: "Rewards", icon: "🛍️" },
+    { id: "bet", label: "P2P Bet", icon: "⚔️" },
     { id: "profile", label: "Profile", icon: "👤" },
   ];
 
@@ -456,6 +761,17 @@ export default function PuntHub() {
         </div>
       )}
 
+      {showBuyCoins && (
+        <BuyCoinsModal
+          onClose={() => setShowBuyCoins(false)}
+          onBuy={(coins) => {
+            setPuntCoins(pc => pc + coins);
+            setShowBuyCoins(false);
+            showNotif(`🪙 +${coins} PuntCoins added!`, "#FFD700");
+          }}
+        />
+      )}
+
       {/* Top Nav */}
       <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(10,10,15,0.95)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "0 16px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
         <PuntHubLogoDark size={36} showText={!isMobile} />
@@ -476,6 +792,11 @@ export default function PuntHub() {
             <span style={{ fontSize: 12 }}>🏆</span>
             <span style={{ color: "#FFD700", fontWeight: 800, fontSize: 13 }}>{user?.points?.toLocaleString()}</span>
             {!isMobile && <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 10 }}>PP</span>}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,215,0,0.08)", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 20, padding: "5px 12px", cursor: "pointer" }} onClick={() => setShowBuyCoins(true)}>
+            <span style={{ fontSize: 12 }}>🪙</span>
+            <span style={{ color: "#FFD700", fontWeight: 800, fontSize: 13 }}>{puntCoins.toLocaleString()}</span>
+            {!isMobile && <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 10 }}>PC</span>}
           </div>
           <div style={{ width: 32, height: 32, background: "linear-gradient(135deg, #FF6B35, #FFD700)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 900, color: "#000", flexShrink: 0 }}>
             {user?.name?.[0]?.toUpperCase()}
@@ -661,6 +982,112 @@ export default function PuntHub() {
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {/* ── P2P BET ── */}
+          {activeTab === "bet" && (
+            <div className="tab-content">
+              {betStep === "lobby" && (
+                <div>
+                  {/* Header */}
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20, gap: 12, flexWrap: "wrap" }}>
+                    <div>
+                      <h2 style={{ fontSize: isMobile ? 26 : 34, fontWeight: 800, letterSpacing: 1 }}>⚔️ P2P <span style={{ color: "#FF6B35" }}>BETTING</span></h2>
+                      <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>Create private sessions and bet PuntCoins against friends</p>
+                    </div>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                      <div style={{ background: "rgba(255,215,0,0.1)", border: "1px solid rgba(255,215,0,0.3)", borderRadius: 12, padding: "8px 14px", display: "flex", gap: 6, alignItems: "center" }}>
+                        <span>🪙</span>
+                        <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 16 }}>{puntCoins.toLocaleString()}</span>
+                        <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 10 }}>PC</span>
+                      </div>
+                      <button onClick={() => setShowBuyCoins(true)} style={{ background: "linear-gradient(135deg, #FF6B35, #FFD700)", border: "none", borderRadius: 10, padding: "9px 16px", color: "#000", fontWeight: 800, fontSize: 12, cursor: "pointer", letterSpacing: 0.5 }}>+ Buy PC</button>
+                    </div>
+                  </div>
+
+                  {/* How it works */}
+                  <div style={{ background: "linear-gradient(135deg, rgba(255,107,53,0.08), rgba(255,215,0,0.05))", border: "1px solid rgba(255,107,53,0.15)", borderRadius: 14, padding: "16px", marginBottom: 20 }}>
+                    <h3 style={{ fontWeight: 800, fontSize: 14, marginBottom: 12, color: "#FF6B35", letterSpacing: 0.5 }}>HOW IT WORKS</h3>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                      {[
+                        ["1️⃣", "Create Session", "Set your stake and create a private bet"],
+                        ["2️⃣", "Friend Joins", "Your opponent deposits the same amount"],
+                        ["3️⃣", "Predict", "Both sides pick an outcome on the generated scenario"],
+                        ["4️⃣", "Win All", "Correct predictor takes the entire pot!"],
+                      ].map(([n, title, desc]) => (
+                        <div key={title} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                          <span style={{ fontSize: 16, flexShrink: 0 }}>{n}</span>
+                          <div>
+                            <div style={{ color: "#fff", fontWeight: 700, fontSize: 12 }}>{title}</div>
+                            <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontFamily: "'Barlow', sans-serif", lineHeight: 1.4 }}>{desc}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Create New Session */}
+                  <CreateBetSession
+                    puntCoins={puntCoins}
+                    onCreated={(session) => {
+                      setBettingSessions(prev => [session, ...prev]);
+                      setActiveBetSession(session);
+                      setPuntCoins(pc => pc - session.stake);
+                      setBetStep("session");
+                    }}
+                    onBuyCoins={() => setShowBuyCoins(true)}
+                  />
+
+                  {/* Active Sessions */}
+                  {bettingSessions.length > 0 && (
+                    <div style={{ marginTop: 20 }}>
+                      <h3 style={{ fontWeight: 800, fontSize: 14, marginBottom: 12, letterSpacing: 0.5 }}>YOUR SESSIONS</h3>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {bettingSessions.map(s => (
+                          <div key={s.id} style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${s.status === "won" ? "rgba(52,211,153,0.3)" : s.status === "lost" ? "rgba(255,100,100,0.3)" : "rgba(255,255,255,0.08)"}`, borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }} onClick={() => { setActiveBetSession(s); setBetStep(s.status ? "result" : "session"); }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontWeight: 700, fontSize: 13, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.scenario.q}</div>
+                              <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontFamily: "'Barlow', sans-serif", marginTop: 2 }}>Stake: {s.stake} PC • {s.status ? s.status.toUpperCase() : "Active"}</div>
+                            </div>
+                            <div style={{ color: s.status === "won" ? "#34D399" : s.status === "lost" ? "#FF6464" : "#FFD700", fontWeight: 900, fontSize: 16, flexShrink: 0 }}>
+                              {s.status === "won" ? `+${s.stake * 2}` : s.status === "lost" ? `-${s.stake}` : `${s.stake * 2} pot`} 🪙
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {betStep === "session" && activeBetSession && (
+                <BetSession
+                  session={activeBetSession}
+                  puntCoins={puntCoins}
+                  onResult={(winner, updatedSession) => {
+                    setBettingSessions(prev => prev.map(s => s.id === updatedSession.id ? updatedSession : s));
+                    setActiveBetSession(updatedSession);
+                    if (winner === "user") setPuntCoins(pc => pc + updatedSession.stake * 2);
+                    setBetStep("result");
+                  }}
+                  onBack={() => setBetStep("lobby")}
+                />
+              )}
+
+              {betStep === "result" && activeBetSession && (
+                <BetResult
+                  session={activeBetSession}
+                  puntCoins={puntCoins}
+                  onRematch={(rematchSession) => {
+                    setPuntCoins(pc => pc - rematchSession.stake);
+                    setBettingSessions(prev => [rematchSession, ...prev.filter(s => s.id !== activeBetSession.id)]);
+                    setActiveBetSession(rematchSession);
+                    setBetStep("session");
+                  }}
+                  onBack={() => { setActiveBetSession(null); setBetStep("lobby"); }}
+                />
+              )}
             </div>
           )}
 
