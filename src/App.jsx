@@ -1,4 +1,9 @@
 import { useState, useEffect, useRef } from "react";
+import {
+  fetchPolymarketEvents,
+  fetchPolymarketP2PScenarios,
+  rollForwardDate,
+} from "./services/polymarket.js";
 
 // ─── SVG LOGO ────────────────────────────────────────────────────────────────
 const PuntHubLogo = ({ size = 40, showText = true }) => (
@@ -416,53 +421,283 @@ function Onboarding({ onComplete }) {
   );
 }
 
+// ─── COIN PACKAGES (minimum $5 per the P2P session requirement) ───────────────
+const COIN_PACKAGES = [
+  { id: 1, coins: 500,  price: 5.00,  label: "$5.00",  bonus: "" },
+  { id: 2, coins: 1100, price: 10.00, label: "$10.00", bonus: "+100 Bonus", popular: true },
+  { id: 3, coins: 2400, price: 20.00, label: "$20.00", bonus: "+400 Bonus" },
+  { id: 4, coins: 6250, price: 50.00, label: "$50.00", bonus: "+1,250 Bonus" },
+];
+
 // ─── BUY COINS MODAL ──────────────────────────────────────────────────────────
 function BuyCoinsModal({ onClose, onBuy }) {
-  const packages = [
-    { coins: 100, price: "$0.99", bonus: "" },
-    { coins: 500, price: "$3.99", bonus: "+50 Bonus" },
-    { coins: 1200, price: "$8.99", bonus: "+200 Bonus" },
-    { coins: 3000, price: "$19.99", bonus: "+600 Bonus" },
+  const [pkg, setPkg] = useState(COIN_PACKAGES[0]);
+  const [gateway, setGateway] = useState(null); // null = select method
+  const [processing, setProcessing] = useState(false);
+  const [ppReady, setPPReady] = useState(false);
+  const paypalRef = useRef(null);
+
+  // ── Load PayPal SDK dynamically ──
+  useEffect(() => {
+    if (gateway !== "paypal") return;
+    if (window.paypal) { setPPReady(true); return; }
+    if (document.getElementById("paypal-sdk-script")) { setPPReady(true); return; }
+    const clientId = (typeof import.meta !== "undefined" && import.meta.env?.VITE_PAYPAL_CLIENT_ID) || "sb";
+    const s = document.createElement("script");
+    s.id = "paypal-sdk-script";
+    s.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`;
+    s.async = true;
+    s.onload = () => setPPReady(true);
+    document.head.appendChild(s);
+  }, [gateway]);
+
+  // ── Render PayPal Buttons ──
+  useEffect(() => {
+    if (!ppReady || gateway !== "paypal" || !paypalRef.current || !window.paypal) return;
+    paypalRef.current.innerHTML = "";
+    window.paypal.Buttons({
+      style: { layout: "vertical", color: "gold", shape: "rect", label: "pay" },
+      createOrder: (_d, actions) =>
+        actions.order.create({
+          purchase_units: [{ amount: { value: pkg.price.toFixed(2) }, description: `${pkg.coins.toLocaleString()} PuntCoins` }],
+        }),
+      onApprove: (_d, actions) => actions.order.capture().then(() => onBuy(pkg.coins)),
+      onError: (err) => console.error("PayPal error:", err),
+    }).render(paypalRef.current);
+  }, [ppReady, pkg, gateway, onBuy]);
+
+  // ── Payfast ──
+  const doPayfast = () => {
+    const mid  = (typeof import.meta !== "undefined" && import.meta.env?.VITE_PAYFAST_MERCHANT_ID)  || "";
+    const mkey = (typeof import.meta !== "undefined" && import.meta.env?.VITE_PAYFAST_MERCHANT_KEY) || "";
+    const sandbox = (typeof import.meta !== "undefined" && import.meta.env?.VITE_PAYFAST_SANDBOX) !== "false";
+    if (!mid) { demoProcess(); return; }
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = sandbox
+      ? "https://sandbox.payfast.co.za/eng/process"
+      : "https://www.payfast.co.za/eng/process";
+    const fields = {
+      merchant_id:  mid,
+      merchant_key: mkey,
+      return_url:   `${location.origin}${location.pathname}?pc_grant=${pkg.coins}`,
+      cancel_url:   `${location.origin}${location.pathname}`,
+      amount:       pkg.price.toFixed(2),
+      item_name:    `${pkg.coins} PuntCoins — PuntHub`,
+    };
+    Object.entries(fields).forEach(([k, v]) => {
+      const inp = document.createElement("input");
+      inp.type = "hidden"; inp.name = k; inp.value = v;
+      form.appendChild(inp);
+    });
+    document.body.appendChild(form);
+    form.submit();
+  };
+
+  // ── Coinbase Commerce ──
+  const doCoinbase = () => {
+    const checkoutId = (typeof import.meta !== "undefined" && import.meta.env?.VITE_COINBASE_CHECKOUT_ID) || "";
+    if (!checkoutId) { demoProcess(); return; }
+    const w = window.open(
+      `https://commerce.coinbase.com/checkout/${checkoutId}`,
+      "_blank",
+      "width=520,height=720,noopener"
+    );
+    // Poll for the popup to close and credit coins
+    const poll = setInterval(() => {
+      if (!w || w.closed) { clearInterval(poll); onBuy(pkg.coins); }
+    }, 1000);
+  };
+
+  // ── Magic Link (passwordless + crypto on-ramp) ──
+  const doMagic = () => {
+    const apiKey = (typeof import.meta !== "undefined" && import.meta.env?.VITE_MAGIC_PUBLISHABLE_KEY) || "";
+    if (!apiKey) { demoProcess(); return; }
+    // Open Magic's hosted on-ramp / auth page
+    window.open(
+      `https://auth.magic.link/send?apiKey=${encodeURIComponent(apiKey)}`,
+      "_blank",
+      "width=440,height=620,noopener"
+    );
+    // After successful auth Magic redirects back; production flow uses their SDK
+    setProcessing(true);
+    const poll = setInterval(() => {
+      // In production replace with Magic SDK token verification
+      clearInterval(poll);
+      setProcessing(false);
+      onBuy(pkg.coins);
+    }, 5000);
+  };
+
+  // ── Demo / sandbox fallback ──
+  const demoProcess = () => {
+    setProcessing(true);
+    setTimeout(() => { setProcessing(false); onBuy(pkg.coins); }, 2200);
+  };
+
+  const GATEWAYS = [
+    { id: "paypal",   label: "PayPal",           icon: "💳", desc: "Pay with PayPal or debit/credit card" },
+    { id: "coinbase", label: "Coinbase Commerce", icon: "₿",  desc: "BTC, ETH, USDC and more" },
+    { id: "payfast",  label: "Payfast",           icon: "🏦", desc: "Card, EFT, SnapScan (ZAR)" },
+    { id: "magic",    label: "Magic Link",        icon: "✨", desc: "Passwordless + crypto on-ramp" },
   ];
+
+  const btnBase = { border: "none", borderRadius: 12, padding: "14px", fontWeight: 800, fontSize: 14, cursor: "pointer", width: "100%", letterSpacing: 0.5, fontFamily: "'Barlow Condensed', sans-serif" };
+
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-      <div style={{ background: "#13131A", border: "1px solid rgba(255,215,0,0.3)", borderRadius: 20, padding: "24px 20px", width: "100%", maxWidth: 400, maxHeight: "90vh", overflowY: "auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div style={{ background: "#13131A", border: "1px solid rgba(255,215,0,0.3)", borderRadius: 20, padding: "24px 20px", width: "100%", maxWidth: 440, maxHeight: "92vh", overflowY: "auto" }}>
+
+        {/* Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
           <div>
             <h2 style={{ color: "#FFD700", fontWeight: 900, fontSize: 22, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1 }}>💰 BUY PUNTCOINS</h2>
-            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>Used for peer-to-peer betting sessions</p>
+            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Barlow', sans-serif" }}>
+              Virtual credits for P2P betting sessions • Min. <strong style={{ color: "#FFD700" }}>$5</strong>
+            </p>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 22, cursor: "pointer" }}>✕</button>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 22, cursor: "pointer", flexShrink: 0 }}>✕</button>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {packages.map(pkg => (
-            <button key={pkg.coins} onClick={() => onBuy(pkg.coins)} style={{ background: "rgba(255,215,0,0.06)", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", transition: "all 0.2s" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 22 }}>🪙</span>
-                <div style={{ textAlign: "left" }}>
-                  <div style={{ color: "#FFD700", fontWeight: 900, fontSize: 18, fontFamily: "'Barlow Condensed', sans-serif" }}>{pkg.coins.toLocaleString()} PC</div>
-                  {pkg.bonus && <div style={{ color: "#34D399", fontSize: 10, fontWeight: 700 }}>{pkg.bonus}</div>}
+
+        {/* Package selector */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>SELECT PACKAGE</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+            {COIN_PACKAGES.map(p => (
+              <button key={p.id} onClick={() => { setPkg(p); setGateway(null); }}
+                style={{ background: pkg.id === p.id ? "rgba(255,215,0,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${pkg.id === p.id ? "rgba(255,215,0,0.55)" : "rgba(255,255,255,0.08)"}`, borderRadius: 12, padding: "13px 15px", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", transition: "all 0.2s" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 22 }}>🪙</span>
+                  <div style={{ textAlign: "left" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                      <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 18, fontFamily: "'Barlow Condensed', sans-serif" }}>{p.coins.toLocaleString()} PC</span>
+                      {p.popular && <span style={{ background: "#FF6B35", color: "#fff", fontSize: 8, fontWeight: 900, padding: "2px 6px", borderRadius: 20, letterSpacing: 0.5 }}>POPULAR</span>}
+                    </div>
+                    {p.bonus && <div style={{ color: "#34D399", fontSize: 10, fontWeight: 700 }}>{p.bonus}</div>}
+                  </div>
                 </div>
-              </div>
-              <div style={{ background: "linear-gradient(135deg, #FF6B35, #FFD700)", borderRadius: 8, padding: "6px 14px", color: "#000", fontWeight: 800, fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif" }}>{pkg.price}</div>
-            </button>
-          ))}
+                <div style={{ background: pkg.id === p.id ? "linear-gradient(135deg, #FF6B35, #FFD700)" : "rgba(255,255,255,0.07)", borderRadius: 8, padding: "6px 14px", color: pkg.id === p.id ? "#000" : "rgba(255,255,255,0.6)", fontWeight: 800, fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif" }}>{p.label}</div>
+              </button>
+            ))}
+          </div>
         </div>
-        <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 9, textAlign: "center", marginTop: 16, fontFamily: "'Barlow', sans-serif" }}>PuntCoins are virtual currency for entertainment purposes. No real money involved in beta.</p>
+
+        {/* ── Payment method picker ── */}
+        {!gateway && (
+          <div>
+            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>PAYMENT METHOD</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {GATEWAYS.map(g => (
+                <button key={g.id} onClick={() => setGateway(g.id)}
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "14px 12px", cursor: "pointer", textAlign: "left", transition: "border-color 0.2s" }}>
+                  <div style={{ fontSize: 26, marginBottom: 6 }}>{g.icon}</div>
+                  <div style={{ color: "#fff", fontWeight: 700, fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", marginBottom: 3 }}>{g.label}</div>
+                  <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontFamily: "'Barlow', sans-serif", lineHeight: 1.4 }}>{g.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── PayPal ── */}
+        {gateway === "paypal" && (
+          <div>
+            <button onClick={() => setGateway(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 12, cursor: "pointer", marginBottom: 12, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>← BACK</button>
+            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>PAY WITH PAYPAL</div>
+            <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
+              <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 17, fontFamily: "'Barlow Condensed', sans-serif" }}>{pkg.coins.toLocaleString()} PC</span>
+              {pkg.bonus && <span style={{ color: "#34D399", fontSize: 11, marginLeft: 8 }}>{pkg.bonus}</span>}
+              <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginLeft: 8 }}>— {pkg.label}</span>
+            </div>
+            {!ppReady
+              ? <div style={{ textAlign: "center", padding: "22px 0", color: "rgba(255,255,255,0.35)", fontSize: 13, fontFamily: "'Barlow', sans-serif" }}>⏳ Loading PayPal SDK…</div>
+              : <div ref={paypalRef} />
+            }
+          </div>
+        )}
+
+        {/* ── Coinbase Commerce ── */}
+        {gateway === "coinbase" && (
+          <div>
+            <button onClick={() => setGateway(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 12, cursor: "pointer", marginBottom: 12, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>← BACK</button>
+            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>PAY WITH CRYPTO</div>
+            <div style={{ background: "rgba(0,82,255,0.08)", border: "1px solid rgba(0,82,255,0.2)", borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
+              <div style={{ color: "#fff", fontWeight: 700, fontSize: 13, marginBottom: 3 }}>Coinbase Commerce</div>
+              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, fontFamily: "'Barlow', sans-serif", lineHeight: 1.5 }}>BTC · ETH · USDC · DAI · APE and more. Secure hosted checkout by Coinbase.</div>
+            </div>
+            <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 12, padding: "13px 15px", marginBottom: 14 }}>
+              <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 17, fontFamily: "'Barlow Condensed', sans-serif" }}>{pkg.coins.toLocaleString()} PC</span>
+              {pkg.bonus && <span style={{ color: "#34D399", fontSize: 11, marginLeft: 8 }}>{pkg.bonus}</span>}
+              <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginLeft: 8 }}>— {pkg.label}</span>
+            </div>
+            {processing
+              ? <div style={{ textAlign: "center", padding: "18px 0", color: "rgba(255,255,255,0.35)", fontSize: 13 }}>⏳ Waiting for payment…</div>
+              : <button onClick={doCoinbase} style={{ ...btnBase, background: "linear-gradient(135deg, #0052FF, #1652F0)", color: "#fff" }}>₿ Pay with Coinbase Commerce</button>
+            }
+          </div>
+        )}
+
+        {/* ── Payfast ── */}
+        {gateway === "payfast" && (
+          <div>
+            <button onClick={() => setGateway(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 12, cursor: "pointer", marginBottom: 12, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>← BACK</button>
+            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>PAY WITH PAYFAST</div>
+            <div style={{ background: "rgba(0,160,0,0.08)", border: "1px solid rgba(0,160,0,0.2)", borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
+              <div style={{ color: "#fff", fontWeight: 700, fontSize: 13, marginBottom: 3 }}>Payfast — South Africa</div>
+              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, fontFamily: "'Barlow', sans-serif", lineHeight: 1.5 }}>Credit / debit card · EFT · SnapScan · Mobicred · Zapper</div>
+            </div>
+            <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 12, padding: "13px 15px", marginBottom: 14 }}>
+              <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 17, fontFamily: "'Barlow Condensed', sans-serif" }}>{pkg.coins.toLocaleString()} PC</span>
+              {pkg.bonus && <span style={{ color: "#34D399", fontSize: 11, marginLeft: 8 }}>{pkg.bonus}</span>}
+              <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginLeft: 8 }}>— {pkg.label}</span>
+            </div>
+            {processing
+              ? <div style={{ textAlign: "center", padding: "18px 0", color: "rgba(255,255,255,0.35)", fontSize: 13 }}>⏳ Redirecting to Payfast…</div>
+              : <button onClick={doPayfast} style={{ ...btnBase, background: "linear-gradient(135deg, #00A100, #00CC00)", color: "#fff" }}>🏦 Pay with Payfast</button>
+            }
+          </div>
+        )}
+
+        {/* ── Magic Link ── */}
+        {gateway === "magic" && (
+          <div>
+            <button onClick={() => setGateway(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 12, cursor: "pointer", marginBottom: 12, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>← BACK</button>
+            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>PAY WITH MAGIC</div>
+            <div style={{ background: "rgba(100,0,255,0.08)", border: "1px solid rgba(100,0,255,0.22)", borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
+              <div style={{ color: "#fff", fontWeight: 700, fontSize: 13, marginBottom: 3 }}>✨ Magic Link</div>
+              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, fontFamily: "'Barlow', sans-serif", lineHeight: 1.5 }}>Passwordless sign-in + crypto on-ramp. Fund your wallet with a card in seconds — no seed phrase needed.</div>
+            </div>
+            <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 12, padding: "13px 15px", marginBottom: 14 }}>
+              <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 17, fontFamily: "'Barlow Condensed', sans-serif" }}>{pkg.coins.toLocaleString()} PC</span>
+              {pkg.bonus && <span style={{ color: "#34D399", fontSize: 11, marginLeft: 8 }}>{pkg.bonus}</span>}
+              <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginLeft: 8 }}>— {pkg.label}</span>
+            </div>
+            {processing
+              ? <div style={{ textAlign: "center", padding: "18px 0", color: "rgba(255,255,255,0.35)", fontSize: 13 }}>⏳ Awaiting Magic authentication…</div>
+              : <button onClick={doMagic} style={{ ...btnBase, background: "linear-gradient(135deg, #6400FF, #A855F7)", color: "#fff" }}>✨ Continue with Magic</button>
+            }
+          </div>
+        )}
+
+        <p style={{ color: "rgba(255,255,255,0.15)", fontSize: 9, textAlign: "center", marginTop: 18, fontFamily: "'Barlow', sans-serif", lineHeight: 1.5 }}>
+          PuntCoins are virtual gaming credits used for P2P prediction sessions. Payments processed by the selected provider.
+        </p>
       </div>
     </div>
   );
 }
 
 // ─── CREATE BET SESSION ───────────────────────────────────────────────────────
-function CreateBetSession({ puntCoins, onCreated, onBuyCoins }) {
-  const [stake, setStake] = useState(50);
-  const presets = [25, 50, 100, 250, 500];
-  const [previewScenario] = useState(() => P2P_SCENARIOS[Math.floor(Math.random() * P2P_SCENARIOS.length)]);
+function CreateBetSession({ puntCoins, onCreated, onBuyCoins, scenarios }) {
+  const p2pScenarios = scenarios && scenarios.length > 0 ? scenarios : P2P_SCENARIOS;
+  const MIN_STAKE = 500; // minimum $5 worth of PuntCoins per session
+  const [stake, setStake] = useState(500);
+  const presets = [500, 1000, 2500, 5000, 10000];
+  const [previewScenario] = useState(() => p2pScenarios[Math.floor(Math.random() * p2pScenarios.length)]);
 
   const createSession = () => {
     if (puntCoins < stake) { onBuyCoins(); return; }
-    const scenario = P2P_SCENARIOS[Math.floor(Math.random() * P2P_SCENARIOS.length)];
+    const scenario = p2pScenarios[Math.floor(Math.random() * p2pScenarios.length)];
     const session = {
       id: Date.now(),
       stake,
@@ -487,7 +722,7 @@ function CreateBetSession({ puntCoins, onCreated, onBuyCoins }) {
             <button key={p} onClick={() => setStake(p)} style={{ background: stake === p ? "rgba(255,107,53,0.2)" : "rgba(255,255,255,0.03)", border: `1px solid ${stake === p ? "#FF6B35" : "rgba(255,255,255,0.1)"}`, borderRadius: 8, padding: "7px 14px", color: stake === p ? "#FF6B35" : "rgba(255,255,255,0.5)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>{p}</button>
           ))}
         </div>
-        <input type="number" value={stake} onChange={e => setStake(Math.max(1, parseInt(e.target.value) || 1))} style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 14px", color: "#fff", fontSize: 15, fontFamily: "'Barlow Condensed', sans-serif", outline: "none" }} />
+        <input type="number" value={stake} onChange={e => setStake(Math.max(MIN_STAKE, parseInt(e.target.value) || MIN_STAKE))} style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 14px", color: "#fff", fontSize: 15, fontFamily: "'Barlow Condensed', sans-serif", outline: "none" }} />
       </div>
 
       <div style={{ background: "rgba(255,107,53,0.06)", border: "1px solid rgba(255,107,53,0.15)", borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}>
@@ -505,7 +740,7 @@ function CreateBetSession({ puntCoins, onCreated, onBuyCoins }) {
       </div>
 
       <button onClick={createSession} style={{ width: "100%", background: puntCoins >= stake ? "linear-gradient(135deg, #FF6B35, #FFD700)" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: puntCoins >= stake ? "#000" : "rgba(255,255,255,0.3)", fontWeight: 800, fontSize: 15, cursor: "pointer", letterSpacing: 0.5, fontFamily: "'Barlow Condensed', sans-serif" }}>
-        {puntCoins >= stake ? `DEPLOY SESSION (${stake} PC) →` : "INSUFFICIENT PC — BUY MORE"}
+        {puntCoins >= stake ? `DEPLOY SESSION (${stake.toLocaleString()} PC) →` : `BUY MIN. $5 IN PUNTCOINS →`}
       </button>
     </div>
   );
@@ -597,19 +832,20 @@ function BetSession({ session, puntCoins, onResult, onBack }) {
 }
 
 // ─── BET RESULT ───────────────────────────────────────────────────────────────
-function BetResult({ session, puntCoins, onRematch, onBack }) {
+function BetResult({ session, puntCoins, onRematch, onBack, scenarios }) {
+  const p2pScenarios = scenarios && scenarios.length > 0 ? scenarios : P2P_SCENARIOS;
   const won = session.status === "won";
   const isRematch = session.round > 1;
 
   const startRematch = () => {
     if (puntCoins < session.stake) return;
-    const usedIdx = P2P_SCENARIOS.findIndex(s => s.q === session.scenario.q);
+    const usedIdx = p2pScenarios.findIndex(s => s.q === session.scenario.q);
     const safeUsedIdx = usedIdx === -1 ? 0 : usedIdx;
-    const nextIdx = (safeUsedIdx + 1 + Math.floor(Math.random() * (P2P_SCENARIOS.length - 1))) % P2P_SCENARIOS.length;
+    const nextIdx = (safeUsedIdx + 1 + Math.floor(Math.random() * (p2pScenarios.length - 1))) % p2pScenarios.length;
     const rematchSession = {
       id: Date.now(),
       stake: session.stake,
-      scenario: P2P_SCENARIOS[nextIdx],
+      scenario: p2pScenarios[nextIdx],
       createdAt: new Date().toISOString(),
       status: null,
       round: session.round + 1,
@@ -697,12 +933,32 @@ export default function PuntHub() {
   const [bettingSessions, setBettingSessions] = useState([]);
   const [activeBetSession, setActiveBetSession] = useState(null);
   const [betStep, setBetStep] = useState("lobby");
+  const [polyEvents, setPolyEvents] = useState([]);
+  const [polyScenarios, setPolyScenarios] = useState([]);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640);
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
+  }, []);
+
+  // Fetch live prediction markets from Polymarket
+  useEffect(() => {
+    fetchPolymarketEvents().then(events => { if (events.length > 0) setPolyEvents(events); });
+    fetchPolymarketP2PScenarios().then(scenarios => { if (scenarios.length > 0) setPolyScenarios(scenarios); });
+  }, []);
+
+  // Credit PuntCoins after Payfast redirect (return_url contains ?pc_grant=<amount>)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const grantedCoins = parseInt(params.get("pc_grant") || "0", 10);
+    if (grantedCoins > 0 && grantedCoins <= 10000) {
+      setPuntCoins(pc => pc + grantedCoins);
+      setNotification({ msg: `🪙 +${grantedCoins.toLocaleString()} PuntCoins added!`, color: "#FFD700" });
+      setTimeout(() => setNotification(null), 3000);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
   }, []);
 
   const showNotif = (msg, color = "#34D399") => {
@@ -730,8 +986,15 @@ export default function PuntHub() {
     return <Onboarding onComplete={(userData) => { setUser(userData); setScreen("app"); }} />;
   }
 
-  const filteredEvents = filterCat === "all" ? EVENTS : EVENTS.filter(e => e.cat === filterCat);
   const filteredPosts = forumFilter === "all" ? FORUM_POSTS : FORUM_POSTS.filter(p => p.cat === forumFilter);
+
+  // Merge Polymarket live events with date-extended static events; show only future events
+  const staticEvents = EVENTS.map(e => ({ ...e, ends: rollForwardDate(e.ends) }));
+  const allEvents = [...polyEvents, ...staticEvents].slice(0, 80);
+  const filteredEvents = filterCat === "all" ? allEvents : allEvents.filter(e => e.cat === filterCat);
+
+  // Merge Polymarket P2P scenarios with static fallback scenarios
+  const allP2PScenarios = polyScenarios.length > 0 ? [...polyScenarios, ...P2P_SCENARIOS] : P2P_SCENARIOS;
 
   const TABS = [
     { id: "home", label: "Predict", icon: "🎯" },
@@ -818,10 +1081,10 @@ export default function PuntHub() {
                     <h1 style={{ fontSize: isMobile ? 28 : 38, fontWeight: 800, letterSpacing: 1, lineHeight: 1.1 }}>
                       PREDICT. WIN. <span style={{ color: "#FF6B35" }}>EARN.</span>
                     </h1>
-                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginTop: 4, fontFamily: "'Barlow', sans-serif" }}>{EVENTS.length} live events • Earn PuntPoints • Redeem rewards</p>
+                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginTop: 4, fontFamily: "'Barlow', sans-serif" }}>{allEvents.length} live events • Earn PuntPoints • Redeem rewards</p>
                   </div>
                   <div style={{ display: "flex", gap: 16 }}>
-                    {[["🎯", Object.keys(predictions).length, "Predictions"], ["📊", EVENTS.filter(e => !predictions[e.id]).length, "Open"]].map(([icon, val, label]) => (
+                    {[["🎯", Object.keys(predictions).length, "Predictions"], ["📊", allEvents.filter(e => !predictions[e.id]).length, "Open"]].map(([icon, val, label]) => (
                       <div key={label} style={{ textAlign: "center" }}>
                         <div style={{ fontSize: 16 }}>{icon}</div>
                         <div style={{ fontWeight: 800, fontSize: 22, color: "#FF6B35" }}>{val}</div>
@@ -1037,6 +1300,7 @@ export default function PuntHub() {
                       setBetStep("session");
                     }}
                     onBuyCoins={() => setShowBuyCoins(true)}
+                    scenarios={allP2PScenarios}
                   />
 
                   {/* Active Sessions */}
@@ -1086,6 +1350,7 @@ export default function PuntHub() {
                     setBetStep("session");
                   }}
                   onBack={() => { setActiveBetSession(null); setBetStep("lobby"); }}
+                  scenarios={allP2PScenarios}
                 />
               )}
             </div>
