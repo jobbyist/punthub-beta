@@ -3,6 +3,8 @@ import {
   fetchPolymarketEvents,
   fetchPolymarketP2PScenarios,
   rollForwardDate } from "./services/polymarket.js";
+import { loginWithMagic, logoutMagic, getMagicUserIfLoggedIn } from "./services/magic.js";
+import { initTradingSession, isBuilderConfigured, clearSession, loadSession } from "./services/polymarketTrading.js";
 
 // ─── SVG LOGO ────────────────────────────────────────────────────────────────
 const PuntHubLogo = ({ size = 40, showText = true }) => (
@@ -415,6 +417,9 @@ function Onboarding({ onComplete }) {
   const [completed, setCompleted] = useState({});
   const [earnedPoints, setEarnedPoints] = useState(0);
   const [animPts, setAnimPts] = useState(null);
+  const [magicLoading, setMagicLoading] = useState(false);
+  const [magicError, setMagicError] = useState("");
+  const [walletAddress, setWalletAddress] = useState("");
 
   const completeTask = (task) => {
     if (!completed[task.id]) {
@@ -422,6 +427,22 @@ function Onboarding({ onComplete }) {
       setEarnedPoints(p => p + task.points);
       setAnimPts(`+${task.points} PP`);
       setTimeout(() => setAnimPts(null), 1500);
+    }
+  };
+
+  // Authenticate with Magic email OTP; on success advance to step 1
+  const handleMagicAuth = async () => {
+    if (!email) return;
+    setMagicError("");
+    setMagicLoading(true);
+    try {
+      const { eoaAddress } = await loginWithMagic(email);
+      setWalletAddress(eoaAddress);
+      setStep(1);
+    } catch (err) {
+      setMagicError(err.message || "Authentication failed. Please try again.");
+    } finally {
+      setMagicLoading(false);
     }
   };
 
@@ -466,12 +487,24 @@ function Onboarding({ onComplete }) {
                 <label style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, display: "block", marginBottom: 7, letterSpacing: 1 }}>YOUR USERNAME</label>
                 <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. PredictionKing99" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 14, fontFamily: "'Inter', sans-serif", outline: "none" }} />
               </div>
-              <div style={{ marginBottom: 24 }}>
+              <div style={{ marginBottom: 8 }}>
                 <label style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, display: "block", marginBottom: 7, letterSpacing: 1 }}>EMAIL ADDRESS</label>
                 <input value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" type="email" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 14, fontFamily: "'Inter', sans-serif", outline: "none" }} />
               </div>
-              <button onClick={() => name && email && setStep(1)} style={{ width: "100%", background: name && email ? "#4361EE" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: name && email ? "#fff" : "rgba(255,255,255,0.3)", fontWeight: 700, fontSize: 15, cursor: name && email ? "pointer" : "not-allowed", transition: "all 0.3s", letterSpacing: 0.5 }}>
-                LET'S GO →
+              {magicError && (
+                <div style={{ color: "#FF6B6B", fontSize: 12, marginBottom: 10, padding: "8px 12px", background: "rgba(255,107,107,0.08)", borderRadius: 8, border: "1px solid rgba(255,107,107,0.2)" }}>
+                  {magicError}
+                </div>
+              )}
+              <div style={{ color: "rgba(255,255,255,0.25)", fontSize: 10, marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}>
+                <span>✨</span>
+                <span>Passwordless sign-in powered by Magic Embedded Wallet — no password required. A one-time code will be sent to your email.</span>
+              </div>
+              <button
+                onClick={handleMagicAuth}
+                disabled={!(name && email) || magicLoading}
+                style={{ width: "100%", background: name && email && !magicLoading ? "linear-gradient(135deg, #6400FF, #4361EE)" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: name && email && !magicLoading ? "#fff" : "rgba(255,255,255,0.3)", fontWeight: 700, fontSize: 15, cursor: name && email && !magicLoading ? "pointer" : "not-allowed", transition: "all 0.3s", letterSpacing: 0.5 }}>
+                {magicLoading ? "⏳ Sending OTP…" : "✨ CONTINUE WITH MAGIC →"}
               </button>
             </div>
           )}
@@ -546,10 +579,17 @@ function Onboarding({ onComplete }) {
               <div style={{ fontSize: 56, marginBottom: 14 }}>🎯</div>
               <h2 style={{ fontSize: 30, fontWeight: 800, color: "#fff", marginBottom: 6, letterSpacing: 1 }}>YOU'RE IN, {name.toUpperCase()}!</h2>
               <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 13, marginBottom: 20 }}>Your PuntHub journey begins now. Start predicting and climb the leaderboard.</p>
-              <div style={{ background: "rgba(255,215,0,0.08)", border: "1px solid rgba(255,215,0,0.3)", borderRadius: 14, padding: "18px", marginBottom: 24 }}>
+              <div style={{ background: "rgba(255,215,0,0.08)", border: "1px solid rgba(255,215,0,0.3)", borderRadius: 14, padding: "18px", marginBottom: 16 }}>
                 <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, marginBottom: 4, letterSpacing: 1 }}>YOUR STARTING BALANCE</div>
                 <div style={{ color: "#FFD700", fontWeight: 800, fontSize: 38, letterSpacing: 2 }}>{(basePoints + earnedPoints).toLocaleString()} PP</div>
               </div>
+              {walletAddress && (
+                <div style={{ background: "rgba(100,0,255,0.08)", border: "1px solid rgba(100,0,255,0.25)", borderRadius: 10, padding: "10px 14px", marginBottom: 16, textAlign: "left" }}>
+                  <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, letterSpacing: 1, marginBottom: 3 }}>✨ MAGIC EMBEDDED WALLET (EOA)</div>
+                  <div style={{ color: "#A855F7", fontWeight: 700, fontSize: 11, wordBreak: "break-all" }}>{walletAddress}</div>
+                  <div style={{ color: "rgba(255,255,255,0.25)", fontSize: 9, marginTop: 3 }}>Safe Proxy Wallet will be deployed on first trade (gasless)</div>
+                </div>
+              )}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 24 }}>
                 {[["🎯", "Predict", "Make predictions to earn PP"], ["🏆", "Compete", "Climb the leaderboard"], ["🛍️", "Redeem", "Turn points into prizes"]].map(([icon, title, desc]) => (
                   <div key={title} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: "12px 8px" }}>
@@ -559,7 +599,7 @@ function Onboarding({ onComplete }) {
                   </div>
                 ))}
               </div>
-              <button onClick={() => onComplete({ name, email, interests, points: basePoints + earnedPoints })} style={{ width: "100%", background: "#4361EE", border: "none", borderRadius: 12, padding: "14px", color: "#fff", fontWeight: 700, fontSize: 16, cursor: "pointer", letterSpacing: 0.5 }}>
+              <button onClick={() => onComplete({ name, email, interests, points: basePoints + earnedPoints, walletAddress })} style={{ width: "100%", background: "#4361EE", border: "none", borderRadius: 12, padding: "14px", color: "#fff", fontWeight: 700, fontSize: 16, cursor: "pointer", letterSpacing: 0.5 }}>
                 START PREDICTING →
               </button>
             </div>
@@ -1085,6 +1125,12 @@ export default function PuntHub() {
   const [polyEvents, setPolyEvents] = useState([]);
   const [polyScenarios, setPolyScenarios] = useState([]);
 
+  // ── Trading session state (Magic + Safe + Polymarket CLOB) ─────────────────
+  const [tradingSession, setTradingSession] = useState(null); // { safeAddress, clobClient, relayClient }
+  const [tradingStep, setTradingStep] = useState("");
+  const [tradingError, setTradingError] = useState("");
+  const [tradingLoading, setTradingLoading] = useState(false);
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640);
     check();
@@ -1131,6 +1177,54 @@ export default function PuntHub() {
       setRedeemed(prev => ({ ...prev, [reward.id]: true }));
       showNotif(`🎉 ${reward.name} redeemed!`, "#FFD700");
     }
+  };
+
+  // Initialize the Polymarket trading session (Safe + CLOB + builder attribution)
+  const handleInitTradingSession = async () => {
+    if (!user?.walletAddress) {
+      setTradingError("No wallet connected. Please sign in again via Magic.");
+      return;
+    }
+    if (!isBuilderConfigured()) {
+      setTradingError("Polymarket Builder credentials are not configured. See README for setup.");
+      return;
+    }
+    setTradingError("");
+    setTradingLoading(true);
+    try {
+      // Retrieve the ethers signer from the active Magic session
+      const magicUser = await getMagicUserIfLoggedIn();
+      if (!magicUser) throw new Error("Magic session expired. Please sign in again.");
+
+      const { providers } = await import("ethers");
+      const { getMagic } = await import("./services/magic.js");
+      const magic = getMagic();
+      const ethersProvider = new providers.Web3Provider(magic.rpcProvider);
+      const ethersSigner = ethersProvider.getSigner();
+
+      const session = await initTradingSession(
+        ethersSigner,
+        user.walletAddress,
+        (step) => setTradingStep(step)
+      );
+      setTradingSession(session);
+      setUser(prev => ({ ...prev, safeAddress: session.safeAddress }));
+      showNotif("🔗 Trading wallet ready! Builder attribution active.", "#A855F7");
+    } catch (err) {
+      setTradingError(err.message || "Failed to initialize trading session.");
+    } finally {
+      setTradingLoading(false);
+      setTradingStep("");
+    }
+  };
+
+  // Sign out: clear Magic session + trading session
+  const handleSignOut = async () => {
+    await logoutMagic();
+    clearSession();
+    setTradingSession(null);
+    setUser(null);
+    setScreen("landing");
   };
 
   if (screen === "landing") {
@@ -1424,6 +1518,47 @@ export default function PuntHub() {
                     </div>
                   </div>
 
+                  {/* Polymarket Trading Wallet Panel */}
+                  {!tradingSession ? (
+                    <div style={{ background: "rgba(100,0,255,0.06)", border: "1px solid rgba(100,0,255,0.2)", borderRadius: 14, padding: "16px", marginBottom: 20 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                        <span style={{ fontSize: 18 }}>🔗</span>
+                        <span style={{ fontWeight: 800, fontSize: 14, color: "#A855F7" }}>Polymarket Trading Wallet</span>
+                      </div>
+                      <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, lineHeight: 1.5, marginBottom: 12 }}>
+                        Connect your Safe Proxy Wallet for gasless on-chain trading with Polymarket Builder attribution. Powered by Magic Embedded Wallet.
+                      </p>
+                      {tradingError && (
+                        <div style={{ color: "#FF6B6B", fontSize: 11, marginBottom: 10, padding: "8px 10px", background: "rgba(255,107,107,0.08)", borderRadius: 8, border: "1px solid rgba(255,107,107,0.2)" }}>
+                          {tradingError}
+                        </div>
+                      )}
+                      {tradingLoading && tradingStep && (
+                        <div style={{ color: "#A855F7", fontSize: 11, marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+                          <span>⏳</span><span>{tradingStep}</span>
+                        </div>
+                      )}
+                      <button
+                        onClick={handleInitTradingSession}
+                        disabled={tradingLoading}
+                        style={{ background: tradingLoading ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg, #6400FF, #4361EE)", border: "none", borderRadius: 10, padding: "10px 16px", color: tradingLoading ? "rgba(255,255,255,0.3)" : "#fff", fontWeight: 700, fontSize: 12, cursor: tradingLoading ? "not-allowed" : "pointer", letterSpacing: 0.5 }}>
+                        {tradingLoading ? "⏳ Connecting…" : "🔗 Connect Trading Wallet"}
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.2)", borderRadius: 14, padding: "14px 16px", marginBottom: 20 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                        <span style={{ fontSize: 16 }}>✅</span>
+                        <span style={{ fontWeight: 800, fontSize: 13, color: "#34D399" }}>Trading Wallet Active</span>
+                        <span style={{ marginLeft: "auto", background: "rgba(100,0,255,0.15)", border: "1px solid rgba(100,0,255,0.3)", borderRadius: 6, padding: "2px 8px", color: "#A855F7", fontSize: 10, fontWeight: 700 }}>BUILDER</span>
+                      </div>
+                      <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 10, wordBreak: "break-all" }}>
+                        Safe: <span style={{ color: "#A855F7" }}>{tradingSession.safeAddress}</span>
+                      </div>
+                      <div style={{ color: "rgba(255,255,255,0.25)", fontSize: 9, marginTop: 3 }}>Gasless trading enabled · Builder order attribution active</div>
+                    </div>
+                  )}
+
                   {/* How it works */}
                   <div style={{ background: "linear-gradient(135deg, rgba(67,97,238,0.08), rgba(255,215,0,0.05))", border: "1px solid rgba(67,97,238,0.15)", borderRadius: 14, padding: "16px", marginBottom: 20 }}>
                     <h3 style={{ fontWeight: 800, fontSize: 14, marginBottom: 12, color: "#4361EE", letterSpacing: 0.5 }}>HOW IT WORKS</h3>
@@ -1587,6 +1722,27 @@ export default function PuntHub() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Wallet & Auth */}
+              <div style={{ background: "rgba(100,0,255,0.05)", border: "1px solid rgba(100,0,255,0.15)", borderRadius: 14, padding: "16px", marginTop: 12 }}>
+                <h3 style={{ fontWeight: 800, marginBottom: 10, fontSize: 14, color: "#A855F7", letterSpacing: 0.5 }}>✨ Wallet & Authentication</h3>
+                {user?.walletAddress && (
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 10, letterSpacing: 1, marginBottom: 3 }}>MAGIC EMBEDDED WALLET (EOA)</div>
+                    <div style={{ color: "#A855F7", fontWeight: 600, fontSize: 11, wordBreak: "break-all" }}>{user.walletAddress}</div>
+                  </div>
+                )}
+                {user?.safeAddress && (
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 10, letterSpacing: 1, marginBottom: 3 }}>SAFE PROXY WALLET</div>
+                    <div style={{ color: "#34D399", fontWeight: 600, fontSize: 11, wordBreak: "break-all" }}>{user.safeAddress}</div>
+                    <div style={{ color: "rgba(255,255,255,0.2)", fontSize: 9, marginTop: 2 }}>Gasless trading enabled · Polymarket Builder attribution active</div>
+                  </div>
+                )}
+                <button onClick={handleSignOut} style={{ background: "rgba(255,100,100,0.1)", border: "1px solid rgba(255,100,100,0.25)", borderRadius: 8, padding: "8px 14px", color: "#FF6B6B", fontWeight: 700, fontSize: 12, cursor: "pointer", letterSpacing: 0.5 }}>
+                  Sign Out
+                </button>
               </div>
             </div>
           )}

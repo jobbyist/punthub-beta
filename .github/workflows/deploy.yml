@@ -24,7 +24,35 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run build
+      - name: Build
+        run: npm run build
+        env:
+          # ── Magic Embedded Wallet ──────────────────────────────────────────
+          # Store this in GitHub → Settings → Secrets and variables → Actions
+          # as a Repository Secret named VITE_MAGIC_PUBLISHABLE_KEY.
+          VITE_MAGIC_PUBLISHABLE_KEY: ${{ secrets.VITE_MAGIC_PUBLISHABLE_KEY }}
+
+          # ── Polygon RPC ───────────────────────────────────────────────────
+          # Optional. Defaults to https://polygon-rpc.com when not set.
+          # Add as VITE_POLYGON_RPC_URL secret for a dedicated RPC endpoint.
+          VITE_POLYGON_RPC_URL: ${{ secrets.VITE_POLYGON_RPC_URL }}
+
+          # ── Polymarket Builder Program ─────────────────────────────────────
+          # Obtain at https://polymarket.com/settings?tab=builder
+          # Store each value as a separate Repository Secret.
+          # ⚠️  These are embedded in the client bundle. For production,
+          #     proxy signing requests through a server-side endpoint so the
+          #     SECRET never reaches the browser (see README for details).
+          VITE_POLYMARKET_BUILDER_API_KEY: ${{ secrets.VITE_POLYMARKET_BUILDER_API_KEY }}
+          VITE_POLYMARKET_BUILDER_SECRET: ${{ secrets.VITE_POLYMARKET_BUILDER_SECRET }}
+          VITE_POLYMARKET_BUILDER_PASSPHRASE: ${{ secrets.VITE_POLYMARKET_BUILDER_PASSPHRASE }}
+
+          # ── Payment gateways ───────────────────────────────────────────────
+          VITE_PAYPAL_CLIENT_ID: ${{ secrets.VITE_PAYPAL_CLIENT_ID }}
+          VITE_COINBASE_CHECKOUT_ID: ${{ secrets.VITE_COINBASE_CHECKOUT_ID }}
+          VITE_PAYFAST_MERCHANT_ID: ${{ secrets.VITE_PAYFAST_MERCHANT_ID }}
+          VITE_PAYFAST_MERCHANT_KEY: ${{ secrets.VITE_PAYFAST_MERCHANT_KEY }}
+          VITE_PAYFAST_SANDBOX: ${{ secrets.VITE_PAYFAST_SANDBOX }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
