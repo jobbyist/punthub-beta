@@ -48,8 +48,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const pathParts = req.query.path;
     const upstreamPath = `/${Array.isArray(pathParts) ? pathParts.join("/") : pathParts || ""}`;
 
-    // Guard: only proxy to the Polymarket CLOB domain
-    if (!/^\/[\w\-/.?=&%+]*$/.test(upstreamPath)) {
+    // Guard: reject path traversal and only allow safe characters
+    if (upstreamPath.includes("..") || !/^\/[\w\-/.?=&%+]*$/.test(upstreamPath)) {
       return res.status(400).json({ error: "Invalid path" });
     }
 

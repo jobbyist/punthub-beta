@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { createHash, createHmac, timingSafeEqual } from "crypto";
+import { createHash, createHmac } from "crypto";
 import { setCors } from "../_cors.js";
 
 // ── Payfast MD5 signature ──────────────────────────────────────────────────────
