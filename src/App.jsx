@@ -4,6 +4,7 @@ import {
   fetchPolymarketP2PScenarios,
   rollForwardDate } from "./services/polymarket.js";
 import { useWallet } from "./hooks/useWallet.js";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 
 // ─── SVG LOGO ────────────────────────────────────────────────────────────────
@@ -1750,6 +1751,7 @@ export default function PuntHub() {
         </nav>
       )}
       <Analytics />
+      <SpeedInsights />
     </div>
   );
 }
