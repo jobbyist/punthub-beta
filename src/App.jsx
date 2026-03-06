@@ -634,65 +634,95 @@ const COIN_PACKAGES = [
 ];
 
 // ─── BUY COINS MODAL ──────────────────────────────────────────────────────────
-function BuyCoinsModal({ onClose, onBuy }) {
+function BuyCoinsModal({ onClose, onBuy, userEmail, userName }) {
   const [pkg, setPkg] = useState(COIN_PACKAGES[0]);
   const [gateway, setGateway] = useState(null); // null = select method
   const [processing, setProcessing] = useState(false);
   const [ppReady, setPPReady] = useState(false);
+  const [ppError, setPPError] = useState(null);
   const paypalRef = useRef(null);
 
   // ── Load PayPal SDK dynamically ──
   useEffect(() => {
     if (gateway !== "paypal") return;
+    setPPError(null);
     if (window.paypal) { setPPReady(true); return; }
     if (document.getElementById("paypal-sdk-script")) { setPPReady(true); return; }
     const clientId = (typeof import.meta !== "undefined" && import.meta.env?.VITE_PAYPAL_CLIENT_ID) || "sb";
     const s = document.createElement("script");
     s.id = "paypal-sdk-script";
-    s.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`;
+    s.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&intent=capture`;
     s.async = true;
     s.onload = () => setPPReady(true);
+    s.onerror = () => setPPError("Failed to load PayPal. Please check your connection and try again.");
     document.head.appendChild(s);
   }, [gateway]);
 
   // ── Render PayPal Buttons ──
   useEffect(() => {
     if (!ppReady || gateway !== "paypal" || !paypalRef.current || !window.paypal) return;
+    setPPError(null);
     paypalRef.current.innerHTML = "";
     window.paypal.Buttons({
       style: { layout: "vertical", color: "gold", shape: "rect", label: "pay" },
       createOrder: (_d, actions) =>
         actions.order.create({
-          purchase_units: [{ amount: { value: pkg.price.toFixed(2) }, description: `${pkg.coins.toLocaleString()} PuntCoins` }] }),
+          intent: "CAPTURE",
+          purchase_units: [{ amount: { value: pkg.price.toFixed(2), currency_code: "USD" }, description: `${pkg.coins.toLocaleString()} PuntCoins` }] }),
       onApprove: (_d, actions) => actions.order.capture().then(() => onBuy(pkg.coins)),
-      onError: (err) => console.error("PayPal error:", err) }).render(paypalRef.current);
+      onError: (err) => {
+        console.error("PayPal error:", err);
+        setPPError("Payment failed. Please try again or choose a different payment method.");
+      },
+      onCancel: () => setPPError(null),
+    }).render(paypalRef.current);
   }, [ppReady, pkg, gateway, onBuy]);
 
   // ── Payfast ──
-  const doPayfast = () => {
-    const mid  = (typeof import.meta !== "undefined" && import.meta.env?.VITE_PAYFAST_MERCHANT_ID)  || "";
-    const mkey = (typeof import.meta !== "undefined" && import.meta.env?.VITE_PAYFAST_MERCHANT_KEY) || "";
-    const sandbox = (typeof import.meta !== "undefined" && import.meta.env?.VITE_PAYFAST_SANDBOX) !== "false";
-    if (!mid) { demoProcess(); return; }
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = sandbox
-      ? "https://sandbox.payfast.co.za/eng/process"
-      : "https://www.payfast.co.za/eng/process";
-    const fields = {
-      merchant_id:  mid,
-      merchant_key: mkey,
-      return_url:   `${location.origin}${location.pathname}?pc_grant=${pkg.coins}`,
-      cancel_url:   `${location.origin}${location.pathname}`,
-      amount:       pkg.price.toFixed(2),
-      item_name:    `${pkg.coins} PuntCoins — PuntHub` };
-    Object.entries(fields).forEach(([k, v]) => {
-      const inp = document.createElement("input");
-      inp.type = "hidden"; inp.name = k; inp.value = v;
-      form.appendChild(inp);
-    });
-    document.body.appendChild(form);
-    form.submit();
+  const [payfastError, setPayfastError] = useState(null);
+  const doPayfast = async () => {
+    setPayfastError(null);
+    const relayUrl = (typeof import.meta !== "undefined" && import.meta.env?.VITE_POLYMARKET_BUILDER_RELAY_SIGN_URL)
+      ? new URL(import.meta.env.VITE_POLYMARKET_BUILDER_RELAY_SIGN_URL).origin
+      : window.location.origin;
+    const apiBase = relayUrl;
+
+    try {
+      setProcessing(true);
+      const resp = await fetch(`${apiBase}/api/payfast/prepare`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: pkg.price,
+          coins: pkg.coins,
+          email: userEmail || "",
+          firstName: userName ? userName.split(" ")[0] : "",
+        }),
+      });
+
+      if (!resp.ok) {
+        // Server not configured — fall back to demo mode
+        if (resp.status === 500) { demoProcess(); return; }
+        throw new Error(`Server error ${resp.status}`);
+      }
+
+      const { fields, endpoint } = await resp.json();
+
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = endpoint;
+      Object.entries(fields).forEach(([k, v]) => {
+        const inp = document.createElement("input");
+        inp.type = "hidden"; inp.name = k; inp.value = String(v);
+        form.appendChild(inp);
+      });
+      document.body.appendChild(form);
+      form.submit();
+    } catch (e) {
+      console.error("[Payfast] prepare failed:", e);
+      setPayfastError("Could not connect to payment server. Please try again.");
+      setProcessing(false);
+    }
   };
 
   // ── Coinbase Commerce ──
@@ -820,6 +850,9 @@ function BuyCoinsModal({ onClose, onBuy }) {
               {pkg.bonus && <span style={{ color: "#34D399", fontSize: 11, marginLeft: 8 }}>{pkg.bonus}</span>}
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginLeft: 8 }}>— {pkg.label}</span>
             </div>
+            {ppError && (
+              <div style={{ background: "rgba(255,100,100,0.08)", border: "1px solid rgba(255,100,100,0.2)", borderRadius: 8, padding: "9px 12px", marginBottom: 12, color: "#FF6464", fontSize: 12 }}>{ppError}</div>
+            )}
             {!ppReady
               ? <div style={{ textAlign: "center", padding: "22px 0", color: "rgba(255,255,255,0.35)", fontSize: 13 }}>⏳ Loading PayPal SDK…</div>
               : <div ref={paypalRef} />
@@ -857,7 +890,7 @@ function BuyCoinsModal({ onClose, onBuy }) {
         {/* ── Payfast ── */}
         {gateway === "payfast" && (
           <div>
-            <button onClick={() => setGateway(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 12, cursor: "pointer", marginBottom: 12, fontWeight: 700 }}>← BACK</button>
+            <button onClick={() => { setGateway(null); setPayfastError(null); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 12, cursor: "pointer", marginBottom: 12, fontWeight: 700 }}>← BACK</button>
             <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>PAY WITH PAYFAST</div>
             <div style={{ background: "rgba(0,160,0,0.08)", border: "1px solid rgba(0,160,0,0.2)", borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
               <div style={{ color: "#fff", fontWeight: 700, fontSize: 13, marginBottom: 3 }}>Payfast — South Africa</div>
@@ -868,6 +901,9 @@ function BuyCoinsModal({ onClose, onBuy }) {
               {pkg.bonus && <span style={{ color: "#34D399", fontSize: 11, marginLeft: 8 }}>{pkg.bonus}</span>}
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginLeft: 8 }}>— {pkg.label}</span>
             </div>
+            {payfastError && (
+              <div style={{ background: "rgba(255,100,100,0.08)", border: "1px solid rgba(255,100,100,0.2)", borderRadius: 8, padding: "9px 12px", marginBottom: 12, color: "#FF6464", fontSize: 12 }}>{payfastError}</div>
+            )}
             {processing
               ? <div style={{ textAlign: "center", padding: "18px 0", color: "rgba(255,255,255,0.35)", fontSize: 13 }}>⏳ Redirecting to Payfast…</div>
               : <button onClick={doPayfast} style={{ ...btnBase, background: "linear-gradient(135deg, #00A100, #00CC00)", color: "#fff" }}>🏦 Pay with Payfast</button>
@@ -1187,11 +1223,48 @@ export default function PuntHub() {
     fetchPolymarketP2PScenarios().then(scenarios => { if (scenarios.length > 0) setPolyScenarios(scenarios); });
   }, []);
 
-  // Credit PuntCoins after Payfast redirect (return_url contains ?pc_grant=<amount>).
-  // NOTE: In production, validate this param server-side (HMAC signature from Payfast ITN)
-  // before crediting coins; the current client-side cap is a beta-only safeguard.
+  // Credit PuntCoins after Payfast redirect.
+  // The return_url contains ?pf_token=<hmac>&pf_coins=<n> which are verified
+  // server-side before crediting, preventing arbitrary coin grants.
+  // Legacy ?pc_grant=<n> (pre-signed flow) is also handled with a conservative cap.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+
+    const pfToken = params.get("pf_token");
+    const pfCoins = parseInt(params.get("pf_coins") || "0", 10);
+
+    if (pfToken && pfCoins > 0 && pfCoins <= 10_000) {
+      // Session-storage guard: prevent double-credit within the same browser session
+      const usedKey = `pf_used_${pfToken}`;
+      if (sessionStorage.getItem(usedKey)) {
+        window.history.replaceState({}, "", window.location.pathname);
+        return;
+      }
+      sessionStorage.setItem(usedKey, "1");
+      window.history.replaceState({}, "", window.location.pathname);
+
+      // Verify the grant token with the server before crediting
+      const relayOrigin = (() => {
+        try {
+          const url = import.meta.env?.VITE_POLYMARKET_BUILDER_RELAY_SIGN_URL;
+          return url ? new URL(url).origin : window.location.origin;
+        } catch { return window.location.origin; }
+      })();
+
+      fetch(`${relayOrigin}/api/payfast/grant?token=${encodeURIComponent(pfToken)}&coins=${pfCoins}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data?.ok && data.coins > 0) {
+            setPuntCoins(pc => pc + data.coins);
+            setNotification({ msg: `🪙 +${data.coins.toLocaleString()} PuntCoins added!`, color: "#FFD700" });
+            setTimeout(() => setNotification(null), 3000);
+          }
+        })
+        .catch(err => console.warn("[PuntHub] Grant verification failed:", err));
+      return;
+    }
+
+    // Legacy path: direct ?pc_grant=<n> (retained for backwards compatibility)
     const grantedCoins = parseInt(params.get("pc_grant") || "0", 10);
     if (grantedCoins > 0 && grantedCoins <= 10000) {
       setPuntCoins(pc => pc + grantedCoins);
@@ -1271,6 +1344,8 @@ export default function PuntHub() {
       {showBuyCoins && (
         <BuyCoinsModal
           onClose={() => setShowBuyCoins(false)}
+          userEmail={user?.email || wallet.email || ""}
+          userName={user?.name || ""}
           onBuy={(coins) => {
             setPuntCoins(pc => pc + coins);
             setShowBuyCoins(false);

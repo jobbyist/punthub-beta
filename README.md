@@ -7,12 +7,13 @@ Users predict real-world events, earn PuntPoints, trade on live Polymarket marke
 
 | Layer | Technology |
 |---|---|
-| Frontend | Vite + React (single-page app) |
+| Frontend | Vite + React (SPA, deployed to GitHub Pages or Vercel) |
+| API / Backend | Vercel Serverless Functions (`api/` directory — TypeScript) |
 | Auth | [Magic Embedded Wallet](https://magic.link) — passwordless email OTP |
 | Wallet | Gnosis Safe Proxy (deployed via Polymarket Builder Relayer) |
 | Markets | [Polymarket CLOB Client](https://github.com/Polymarket/py-clob-client) + Builder Program |
-| Payments | Payfast (ZAR) · PayPal · Coinbase Commerce |
-| Hosting | GitHub Pages (CI via GitHub Actions) |
+| Payments | Payfast (ZAR) · PayPal · Coinbase Commerce · Magic (crypto) |
+| Hosting | GitHub Pages (static) + Vercel (API functions) |
 
 ---
 
@@ -31,10 +32,30 @@ npm run preview # preview the production build locally
 
 ---
 
+## Deployment Architecture
+
+The app is split into two deployment targets:
+
+1. **Frontend (GitHub Pages / Vercel)** — the static Vite build from `dist/`
+2. **API (Vercel)** — the serverless functions in `api/`
+
+The `vercel.json` at the root configures both targets.  
+The GitHub Actions workflow (`.github/workflows/deploy.yml`) builds and deploys the frontend.
+
+---
+
 ## Environment Variables
 
-Copy `.env.example` to `.env` and fill in the values.  
-All `VITE_*` variables are inlined into the browser bundle at build time by Vite.
+Copy `.env.example` to `.env` and fill in the values.
+
+### Variable types
+
+| Prefix | Where | Description |
+|---|---|---|
+| `VITE_*` | Browser bundle (Vite) | Injected at build time. Also add to GitHub Secrets. |
+| _(none)_ | Vercel server only | Set in Vercel → Project Settings → Environment Variables. **Never** expose in the browser or GitHub Actions. |
+
+---
 
 ### Magic Embedded Wallet (required for passwordless auth)
 
@@ -60,28 +81,41 @@ VITE_POLYGON_RPC_URL=https://polygon-rpc.com
 ### Polymarket Builder Program (required for gasless trading)
 
 1. Visit <https://polymarket.com/settings?tab=builder> to apply for the Builder Program.
-2. Once approved, obtain your **API Key** and **Passphrase** from the same settings page.
+2. Once approved, obtain your **API Key**, **Passphrase**, and **Secret** from the same settings page.
 
-#### ⚠️ Builder Secret — server-side only
-
-The `POLYMARKET_BUILDER_SECRET` is used for HMAC request signing and must **never** be exposed to the browser.
-
-For the static GitHub Pages deployment, deploy a lightweight signing proxy (e.g., a Vercel Edge Function or a Netlify Function based on the [magic-safe-builder-example](https://github.com/Polymarket/magic-safe-builder-example/blob/main/src/app/api/polymarket/sign/route.ts)) and set `VITE_POLYMARKET_BUILDER_RELAY_SIGN_URL` to its URL.
+#### Browser-safe (add to GitHub Secrets as well)
 
 ```env
 VITE_POLYMARKET_BUILDER_API_KEY=your_builder_api_key
 VITE_POLYMARKET_BUILDER_PASSPHRASE=your_builder_passphrase
-VITE_POLYMARKET_BUILDER_RELAY_SIGN_URL=https://your-api.example.com/api/polymarket/sign
+VITE_POLYMARKET_BUILDER_RELAY_SIGN_URL=https://your-vercel-app.vercel.app
 ```
 
-### Payfast (ZAR payments — sandbox credentials pre-configured)
-
-The sandbox credentials are safe to use in development and CI:
+#### ⚠️ Server-side only — set in Vercel dashboard, NOT in GitHub Secrets
 
 ```env
-VITE_PAYFAST_MERCHANT_ID=10000100
-VITE_PAYFAST_MERCHANT_KEY=46f0cd694581a
-VITE_PAYFAST_SANDBOX=true
+POLYMARKET_BUILDER_API_KEY=your_builder_api_key
+POLYMARKET_BUILDER_SECRET=your_builder_secret
+POLYMARKET_BUILDER_PASSPHRASE=your_builder_passphrase
+```
+
+The `POLYMARKET_BUILDER_SECRET` is used for HMAC signing of requests.  
+The signing proxy lives at `api/polymarket/sign.ts` (Vercel serverless function).
+
+### Payfast (ZAR payments)
+
+Payfast credentials are configured **server-side only** in Vercel environment variables.  
+The form fields (including the security signature) are generated server-side by `api/payfast/prepare.ts`.
+
+#### Server-side only (set in Vercel dashboard)
+
+```env
+PAYFAST_MERCHANT_ID=your_merchant_id
+PAYFAST_MERCHANT_KEY=your_merchant_key
+PAYFAST_PASSPHRASE=your_merchant_passphrase   # from Payfast Settings → Integration
+PAYFAST_SANDBOX=true   # set to "false" for live payments
+PAYFAST_NOTIFY_URL=https://your-vercel-app.vercel.app/api/payfast/notify
+PAYFAST_ITN_SECRET=<random 32-byte hex>   # openssl rand -hex 32
 ```
 
 Sandbox buyer credentials (for manual testing):
@@ -89,12 +123,10 @@ Sandbox buyer credentials (for manual testing):
 - Password: `Test1234`
 - Full card details: <https://developers.payfast.co.za/docs#testing>
 
-For live payments, replace the credentials and set `VITE_PAYFAST_SANDBOX=false`.
-
 ### PayPal
 
 ```env
-VITE_PAYPAL_CLIENT_ID=sb   # "sb" = PayPal sandbox
+VITE_PAYPAL_CLIENT_ID=sb   # "sb" = PayPal sandbox; replace with live client ID for production
 ```
 
 ### Coinbase Commerce
@@ -121,14 +153,12 @@ All `VITE_*` variables must be added as GitHub Repository Secrets so the GitHub 
 | `VITE_POLYGON_RPC_URL` | Polygon RPC endpoint URL |
 | `VITE_POLYMARKET_BUILDER_API_KEY` | Polymarket Builder API Key |
 | `VITE_POLYMARKET_BUILDER_PASSPHRASE` | Polymarket Builder Passphrase |
-| `VITE_POLYMARKET_BUILDER_RELAY_SIGN_URL` | URL of your server-side signing proxy |
+| `VITE_POLYMARKET_BUILDER_RELAY_SIGN_URL` | URL of your Vercel deployment |
 | `VITE_PAYPAL_CLIENT_ID` | PayPal Client ID (`sb` for sandbox) |
 | `VITE_COINBASE_CHECKOUT_ID` | Coinbase Commerce Checkout UUID |
-| `VITE_PAYFAST_MERCHANT_ID` | Payfast merchant ID |
-| `VITE_PAYFAST_MERCHANT_KEY` | Payfast merchant key |
-| `VITE_PAYFAST_SANDBOX` | `"true"` (sandbox) or `"false"` (live) |
 
-> **Never** set `POLYMARKET_BUILDER_SECRET` as a GitHub Secret for the Pages build — it belongs on your signing proxy server only.
+> **Never** add Payfast credentials, `POLYMARKET_BUILDER_SECRET`, or `PAYFAST_ITN_SECRET`  
+> to GitHub Secrets — these belong in Vercel environment variables only.
 
 The deploy workflow at `.github/workflows/deploy.yml` automatically reads these secrets during `npm run build`.
 
@@ -161,7 +191,7 @@ In GitHub: **Settings → Pages → Build and deployment → Source: GitHub Acti
 
 ## Polymarket Builder Program Integration
 
-The integration is split across three files:
+The integration is split across three client-side files:
 
 | File | Responsibility |
 |---|---|
@@ -169,14 +199,38 @@ The integration is split across three files:
 | `src/services/polymarketAuth.js` | Safe deployment, CLOB credentials, token approvals, `ClobClient` factory |
 | `src/hooks/useWallet.js` | React hook exposing `connect`, `disconnect`, `setupTrading`, wallet state |
 
+And two API (server-side) endpoints:
+
+| File | Responsibility |
+|---|---|
+| `api/polymarket/sign.ts` | HMAC signing proxy — keeps `POLYMARKET_BUILDER_SECRET` off the browser |
+| `api/polymarket/clob/[...path].ts` | Authenticated reverse proxy for Polymarket CLOB API |
+
 ### Key Integration Details
 
 **Builder Config** — `src/services/polymarketAuth.js:createBuilderConfig()`  
-Uses `remoteBuilderConfig` so the builder secret stays server-side.
+Uses `remoteBuilderConfig` pointing to `VITE_POLYMARKET_BUILDER_RELAY_SIGN_URL` so the builder secret stays server-side.
 
 **RelayClient** — used for gasless Safe deployment and batched token approvals.
 
 **ClobClient** — authenticated client with builder attribution for order placement.
 
 Reference implementation: <https://github.com/Polymarket/magic-safe-builder-example>
+
+---
+
+## Payfast Payment Flow
+
+1. User selects a PuntCoin package and clicks **Pay with Payfast**.
+2. The app calls `POST /api/payfast/prepare` with `{amount, coins, email}`.
+3. The server-side handler:
+   - Computes the Payfast MD5 signature (using `PAYFAST_PASSPHRASE` — server-only).
+   - Generates a time-limited HMAC grant token (`PAYFAST_ITN_SECRET`).
+   - Returns all form fields, the endpoint URL, and the grant token.
+4. The browser submits a POST form directly to Payfast.
+5. Payfast processes the payment and:
+   - Calls `PAYFAST_NOTIFY_URL` (`/api/payfast/notify`) server-to-server with the ITN.
+   - Redirects the user to `return_url` with `?pf_token=<token>&pf_coins=<n>`.
+6. The app calls `GET /api/payfast/grant?token=<token>&coins=<n>` to verify the token.
+7. On success, PuntCoins are credited to the user's account.
 

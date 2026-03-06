@@ -1,7 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { buildHmacSignature } from "@polymarket/builder-signing-sdk";
+import { setCors } from "../_cors.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (setCors(req, res)) return;
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -22,13 +25,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const timestamp = Date.now().toString();
+    const bodyStr: string | undefined =
+      body !== undefined && body !== null
+        ? typeof body === "string" ? body : JSON.stringify(body)
+        : undefined;
 
     const signature = buildHmacSignature(
       secret,
       Number(timestamp),
       method,
       path,
-      body
+      bodyStr
     );
 
     return res.status(200).json({

@@ -31,17 +31,19 @@ jobs:
           # ── Magic Embedded Wallet ──────────────────────────────────────────
           VITE_MAGIC_PUBLISHABLE_KEY: ${{ secrets.VITE_MAGIC_PUBLISHABLE_KEY }}
           # ── Polymarket Builder Program ─────────────────────────────────────
-          # The builder SECRET must NEVER be set here — it belongs in a
-          # server-side signing proxy only (see README for details).
+          # The builder SECRET must NEVER be set here — it belongs in
+          # Vercel environment variables only (see README for details).
           VITE_POLYMARKET_BUILDER_API_KEY: ${{ secrets.VITE_POLYMARKET_BUILDER_API_KEY }}
           VITE_POLYMARKET_BUILDER_PASSPHRASE: ${{ secrets.VITE_POLYMARKET_BUILDER_PASSPHRASE }}
           VITE_POLYMARKET_BUILDER_RELAY_SIGN_URL: ${{ secrets.VITE_POLYMARKET_BUILDER_RELAY_SIGN_URL }}
           # ── Payment gateways ───────────────────────────────────────────────
+          # PayPal client ID is browser-safe (public identifier).
           VITE_PAYPAL_CLIENT_ID: ${{ secrets.VITE_PAYPAL_CLIENT_ID }}
           VITE_COINBASE_CHECKOUT_ID: ${{ secrets.VITE_COINBASE_CHECKOUT_ID }}
-          VITE_PAYFAST_MERCHANT_ID: ${{ secrets.VITE_PAYFAST_MERCHANT_ID }}
-          VITE_PAYFAST_MERCHANT_KEY: ${{ secrets.VITE_PAYFAST_MERCHANT_KEY }}
-          VITE_PAYFAST_SANDBOX: ${{ secrets.VITE_PAYFAST_SANDBOX }}
+          # NOTE: Payfast credentials (PAYFAST_MERCHANT_ID, PAYFAST_MERCHANT_KEY,
+          # PAYFAST_PASSPHRASE, PAYFAST_ITN_SECRET, PAYFAST_SANDBOX) are server-side
+          # only.  Set them in Vercel → Project Settings → Environment Variables.
+          # Do NOT add them here.
         run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
