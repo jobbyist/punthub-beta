@@ -3,6 +3,7 @@ import {
   fetchPolymarketEvents,
   fetchPolymarketP2PScenarios,
   rollForwardDate } from "./services/polymarket.js";
+import { useWallet } from "./hooks/useWallet.js";
 
 // ─── SVG LOGO ────────────────────────────────────────────────────────────────
 const PuntHubLogo = ({ size = 40, showText = true }) => (
@@ -416,6 +417,9 @@ function Onboarding({ onComplete }) {
   const [earnedPoints, setEarnedPoints] = useState(0);
   const [animPts, setAnimPts] = useState(null);
 
+  // Magic wallet hook — used in step 0 for passwordless OTP login
+  const wallet = useWallet();
+
   const completeTask = (task) => {
     if (!completed[task.id]) {
       setCompleted(prev => ({ ...prev, [task.id]: true }));
@@ -426,6 +430,26 @@ function Onboarding({ onComplete }) {
   };
 
   const basePoints = 500;
+
+  // When Magic auth succeeds, pre-fill the email and advance to step 1
+  useEffect(() => {
+    if (wallet.isConnected && wallet.email && step === 0) {
+      setEmail(wallet.email);
+      if (!name) setName(wallet.email.split("@")[0]);
+      setStep(1);
+    }
+  }, [wallet.isConnected, wallet.email, step, name]);
+
+  const handleMagicLogin = async () => {
+    if (!email) return;
+    await wallet.connect(email);
+    // The useEffect above advances the step once wallet.isConnected is true
+  };
+
+  // When Magic is not configured, fall back to the classic name+email form
+  const magicConfigured = Boolean(
+    typeof import.meta !== "undefined" && import.meta.env?.VITE_MAGIC_PUBLISHABLE_KEY
+  );
 
   return (
     <div style={{ minHeight: "100vh", minHeight: "100dvh", background: "#0A0A0F", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px", fontFamily: "'Inter', sans-serif", overflowX: "hidden", boxSizing: "border-box" }}>
@@ -462,17 +486,47 @@ function Onboarding({ onComplete }) {
             <div>
               <h2 style={{ fontSize: 26, fontWeight: 800, color: "#fff", marginBottom: 6, letterSpacing: 0.5 }}>Welcome to PuntHub 🎯</h2>
               <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 13, lineHeight: 1.7, marginBottom: 24 }}>The world's most rewarding prediction community. Predict outcomes, earn PuntPoints, redeem incredible rewards.</p>
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, display: "block", marginBottom: 7, letterSpacing: 1 }}>YOUR USERNAME</label>
-                <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. PredictionKing99" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 14, fontFamily: "'Inter', sans-serif", outline: "none" }} />
-              </div>
-              <div style={{ marginBottom: 24 }}>
-                <label style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, display: "block", marginBottom: 7, letterSpacing: 1 }}>EMAIL ADDRESS</label>
-                <input value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" type="email" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 14, fontFamily: "'Inter', sans-serif", outline: "none" }} />
-              </div>
-              <button onClick={() => name && email && setStep(1)} style={{ width: "100%", background: name && email ? "#4361EE" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: name && email ? "#fff" : "rgba(255,255,255,0.3)", fontWeight: 700, fontSize: 15, cursor: name && email ? "pointer" : "not-allowed", transition: "all 0.3s", letterSpacing: 0.5 }}>
-                LET'S GO →
-              </button>
+
+              {/* ── Magic Email OTP (when configured) ── */}
+              {magicConfigured ? (
+                <>
+                  <div style={{ background: "rgba(100,0,255,0.07)", border: "1px solid rgba(100,0,255,0.22)", borderRadius: 12, padding: "12px 14px", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 18 }}>✨</span>
+                    <div>
+                      <div style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>Passwordless Sign-In</div>
+                      <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>Enter your email — we'll send a one-time code. No password needed.</div>
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, display: "block", marginBottom: 7, letterSpacing: 1 }}>EMAIL ADDRESS</label>
+                    <input value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" type="email" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 14, fontFamily: "'Inter', sans-serif", outline: "none" }} />
+                  </div>
+                  {wallet.error && (
+                    <div style={{ background: "rgba(255,100,100,0.08)", border: "1px solid rgba(255,100,100,0.2)", borderRadius: 8, padding: "9px 12px", marginBottom: 12, color: "#FF6464", fontSize: 12 }}>{wallet.error}</div>
+                  )}
+                  <button
+                    onClick={handleMagicLogin}
+                    disabled={!email || wallet.isLoading}
+                    style={{ width: "100%", background: email && !wallet.isLoading ? "linear-gradient(135deg, #6400FF, #4361EE)" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: email && !wallet.isLoading ? "#fff" : "rgba(255,255,255,0.3)", fontWeight: 700, fontSize: 15, cursor: email && !wallet.isLoading ? "pointer" : "not-allowed", transition: "all 0.3s", letterSpacing: 0.5 }}>
+                    {wallet.isLoading ? "✨ Sending OTP…" : "✨ CONTINUE WITH MAGIC →"}
+                  </button>
+                </>
+              ) : (
+                /* ── Fallback: classic name + email form (no Magic key configured) ── */
+                <>
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, display: "block", marginBottom: 7, letterSpacing: 1 }}>YOUR USERNAME</label>
+                    <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. PredictionKing99" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 14, fontFamily: "'Inter', sans-serif", outline: "none" }} />
+                  </div>
+                  <div style={{ marginBottom: 24 }}>
+                    <label style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, display: "block", marginBottom: 7, letterSpacing: 1 }}>EMAIL ADDRESS</label>
+                    <input value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" type="email" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 14, fontFamily: "'Inter', sans-serif", outline: "none" }} />
+                  </div>
+                  <button onClick={() => name && email && setStep(1)} style={{ width: "100%", background: name && email ? "#4361EE" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: name && email ? "#fff" : "rgba(255,255,255,0.3)", fontWeight: 700, fontSize: 15, cursor: name && email ? "pointer" : "not-allowed", transition: "all 0.3s", letterSpacing: 0.5 }}>
+                    LET'S GO →
+                  </button>
+                </>
+              )}
             </div>
           )}
 
@@ -654,19 +708,35 @@ function BuyCoinsModal({ onClose, onBuy }) {
     setCoinbaseAwaitingConfirm(true);
   };
 
-  // ── Magic Link (passwordless + crypto on-ramp) ──
+  // ── Magic Link (passwordless email OTP + embedded wallet via Magic SDK) ──
+  const [magicAuthEmail, setMagicAuthEmail] = useState("");
+  const [magicAuthLoading, setMagicAuthLoading] = useState(false);
+  const [magicAuthError, setMagicAuthError] = useState(null);
   const [magicAwaitingConfirm, setMagicAwaitingConfirm] = useState(false);
-  const doMagic = () => {
+  const doMagic = async () => {
     const apiKey = (typeof import.meta !== "undefined" && import.meta.env?.VITE_MAGIC_PUBLISHABLE_KEY) || "";
     if (!apiKey) { demoProcess(); return; }
-    // Open Magic's hosted on-ramp / auth page
-    window.open(
-      `https://auth.magic.link/send?apiKey=${encodeURIComponent(apiKey)}`,
-      "_blank",
-      "width=440,height=620,noopener"
-    );
-    // Show a manual confirmation button; production flow verifies via Magic SDK token
-    setMagicAwaitingConfirm(true);
+    if (!magicAuthEmail) { setMagicAuthError("Enter your email to continue."); return; }
+    setMagicAuthError(null);
+    setMagicAuthLoading(true);
+    try {
+      // Dynamically import to keep the Magic bundle lazy
+      const { loginWithEmail } = await import("./services/magic.js");
+      const address = await loginWithEmail(magicAuthEmail);
+      if (address) {
+        // User authenticated — run Polymarket onboarding in the background
+        import("./services/polymarketAuth.js").then(({ setupPolymarketTrading }) => {
+          setupPolymarketTrading().catch(() => {/* non-fatal in payment context */});
+        });
+        setMagicAwaitingConfirm(true);
+      }
+      // If address is null the user cancelled the OTP dialog — no error needed
+    } catch (e) {
+      console.error("[Magic payment] login failed:", e);
+      setMagicAuthError("Magic login failed. Please try again.");
+    } finally {
+      setMagicAuthLoading(false);
+    }
   };
 
   // ── Demo / sandbox fallback ──
@@ -804,14 +874,14 @@ function BuyCoinsModal({ onClose, onBuy }) {
           </div>
         )}
 
-        {/* ── Magic Link ── */}
+        {/* ── Magic Link (Embedded Wallet / Email OTP) ── */}
         {gateway === "magic" && (
           <div>
-            <button onClick={() => setGateway(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 12, cursor: "pointer", marginBottom: 12, fontWeight: 700 }}>← BACK</button>
-            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>PAY WITH MAGIC</div>
+            <button onClick={() => { setGateway(null); setMagicAuthError(null); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 12, cursor: "pointer", marginBottom: 12, fontWeight: 700 }}>← BACK</button>
+            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>PAY WITH MAGIC EMBEDDED WALLET</div>
             <div style={{ background: "rgba(100,0,255,0.08)", border: "1px solid rgba(100,0,255,0.22)", borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
-              <div style={{ color: "#fff", fontWeight: 700, fontSize: 13, marginBottom: 3 }}>✨ Magic Link</div>
-              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, lineHeight: 1.5 }}>Passwordless sign-in + crypto on-ramp. Fund your wallet with a card in seconds — no seed phrase needed.</div>
+              <div style={{ color: "#fff", fontWeight: 700, fontSize: 13, marginBottom: 3 }}>✨ Magic Embedded Wallet</div>
+              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, lineHeight: 1.5 }}>Passwordless email OTP — no password or seed phrase needed. Your non-custodial wallet is created automatically on Polygon.</div>
             </div>
             <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 12, padding: "13px 15px", marginBottom: 14 }}>
               <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 17 }}>{pkg.coins.toLocaleString()} PC</span>
@@ -821,12 +891,27 @@ function BuyCoinsModal({ onClose, onBuy }) {
             {magicAwaitingConfirm ? (
               <div>
                 <div style={{ background: "rgba(100,0,255,0.07)", border: "1px solid rgba(100,0,255,0.2)", borderRadius: 10, padding: "12px 14px", marginBottom: 12, color: "rgba(255,255,255,0.6)", fontSize: 12, lineHeight: 1.5 }}>
-                  Complete payment in the Magic window, then click below.
+                  ✅ Magic wallet authenticated. Click below to credit your PuntCoins.
                 </div>
-                <button onClick={() => { setMagicAwaitingConfirm(false); onBuy(pkg.coins); }} style={{ ...btnBase, background: "linear-gradient(135deg, #6400FF, #A855F7)", color: "#fff" }}>✅ I've Completed Payment</button>
+                <button onClick={() => { setMagicAwaitingConfirm(false); onBuy(pkg.coins); }} style={{ ...btnBase, background: "linear-gradient(135deg, #6400FF, #A855F7)", color: "#fff" }}>✅ Confirm & Add {pkg.coins.toLocaleString()} PC</button>
               </div>
             ) : (
-              <button onClick={doMagic} style={{ ...btnBase, background: "linear-gradient(135deg, #6400FF, #A855F7)", color: "#fff" }}>✨ Continue with Magic</button>
+              <div>
+                <label style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, display: "block", marginBottom: 7, letterSpacing: 1 }}>YOUR EMAIL</label>
+                <input
+                  type="email"
+                  value={magicAuthEmail}
+                  onChange={e => { setMagicAuthEmail(e.target.value); setMagicAuthError(null); }}
+                  placeholder="your@email.com"
+                  style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 14, fontFamily: "inherit", outline: "none", marginBottom: 10 }}
+                />
+                {magicAuthError && (
+                  <div style={{ color: "#FF6464", fontSize: 11, marginBottom: 10 }}>{magicAuthError}</div>
+                )}
+                <button onClick={doMagic} disabled={magicAuthLoading} style={{ ...btnBase, background: magicAuthLoading ? "rgba(100,0,255,0.3)" : "linear-gradient(135deg, #6400FF, #A855F7)", color: "#fff", cursor: magicAuthLoading ? "not-allowed" : "pointer" }}>
+                  {magicAuthLoading ? "✨ Sending OTP…" : "✨ Sign In with Magic"}
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -1084,6 +1169,9 @@ export default function PuntHub() {
   const [betStep, setBetStep] = useState("lobby");
   const [polyEvents, setPolyEvents] = useState([]);
   const [polyScenarios, setPolyScenarios] = useState([]);
+
+  // Magic + Polymarket wallet state
+  const wallet = useWallet();
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640);
@@ -1570,6 +1658,60 @@ export default function PuntHub() {
                         </div>
                       );
                     })}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "16px", marginBottom: 12 }}>
+                <h3 style={{ fontWeight: 800, marginBottom: 12, fontSize: 16, letterSpacing: 0.5 }}>✨ Wallet &amp; Trading</h3>
+                {wallet.isConnected ? (
+                  <div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>Magic Email</span>
+                        <span style={{ color: "#fff", fontSize: 12, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", maxWidth: "60%" }}>{wallet.email}</span>
+                      </div>
+                      {wallet.eoaAddress && (
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>EOA Wallet</span>
+                          <span style={{ color: "#4361EE", fontSize: 11, fontWeight: 600, fontFamily: "monospace" }}>{wallet.eoaAddress.slice(0,6)}…{wallet.eoaAddress.slice(-4)}</span>
+                        </div>
+                      )}
+                      {wallet.safeAddress ? (
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>Safe Proxy</span>
+                          <span style={{ color: "#34D399", fontSize: 11, fontWeight: 600, fontFamily: "monospace" }}>{wallet.safeAddress.slice(0,6)}…{wallet.safeAddress.slice(-4)}</span>
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>Polymarket Safe</span>
+                          <button
+                            onClick={wallet.setupTrading}
+                            disabled={wallet.isLoading}
+                            style={{ background: wallet.isLoading ? "rgba(67,97,238,0.2)" : "#4361EE", border: "none", borderRadius: 6, padding: "4px 10px", color: "#fff", fontSize: 11, fontWeight: 700, cursor: wallet.isLoading ? "not-allowed" : "pointer" }}>
+                            {wallet.isLoading ? "Setting up…" : "Setup Trading →"}
+                          </button>
+                        </div>
+                      )}
+                      {wallet.clobClient && (
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>CLOB Client</span>
+                          <span style={{ color: "#34D399", fontSize: 11, fontWeight: 700 }}>✓ Ready</span>
+                        </div>
+                      )}
+                    </div>
+                    {wallet.error && <div style={{ color: "#FF6464", fontSize: 11, marginBottom: 10 }}>{wallet.error}</div>}
+                    <button
+                      onClick={wallet.disconnect}
+                      disabled={wallet.isLoading}
+                      style={{ background: "rgba(255,100,100,0.1)", border: "1px solid rgba(255,100,100,0.25)", borderRadius: 8, padding: "8px 14px", color: "#FF6464", fontSize: 12, fontWeight: 700, cursor: "pointer", width: "100%" }}>
+                      Disconnect Wallet
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: "center", padding: "8px 0" }}>
+                    <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 12, marginBottom: 14, lineHeight: 1.6 }}>Connect your Magic wallet to enable gasless Polymarket trading and builder order attribution.</p>
+                    <button onClick={() => showNotif("Use the Magic option in Buy PC to connect your wallet ✨")} style={{ background: "linear-gradient(135deg, #6400FF, #4361EE)", border: "none", borderRadius: 10, padding: "10px 18px", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>✨ Connect with Magic</button>
                   </div>
                 )}
               </div>
