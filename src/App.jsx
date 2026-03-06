@@ -4,6 +4,7 @@ import {
   fetchPolymarketP2PScenarios,
   rollForwardDate } from "./services/polymarket.js";
 import { useWallet } from "./hooks/useWallet.js";
+import { Analytics } from "@vercel/analytics/react";
 
 // ─── SVG LOGO ────────────────────────────────────────────────────────────────
 const PuntHubLogo = ({ size = 40, showText = true }) => (
@@ -1748,6 +1749,7 @@ export default function PuntHub() {
           ))}
         </nav>
       )}
+      <Analytics />
     </div>
   );
 }
