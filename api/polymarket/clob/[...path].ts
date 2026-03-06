@@ -1,20 +1,30 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { buildHmacSignature } from "@polymarket/builder-signing-sdk";
+import { setCors } from "../../_cors.js";
 
 const BASE_URL = "https://clob.polymarket.com";
 
+// Only allow these HTTP methods to be proxied
+const ALLOWED_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE"]);
+
 function getBuilderHeaders(method: string, path: string, body?: unknown) {
-  const key = process.env.POLYMARKET_BUILDER_API_KEY!;
-  const secret = process.env.POLYMARKET_BUILDER_SECRET!;
-  const passphrase = process.env.POLYMARKET_BUILDER_PASSPHRASE!;
+  const key = process.env.POLYMARKET_BUILDER_API_KEY;
+  const secret = process.env.POLYMARKET_BUILDER_SECRET;
+  const passphrase = process.env.POLYMARKET_BUILDER_PASSPHRASE;
+
+  if (!key || !secret || !passphrase) {
+    throw new Error("Missing Polymarket builder env vars on server");
+  }
+
   const timestamp = Date.now().toString();
+  const bodyStr = body !== undefined ? JSON.stringify(body) : undefined;
 
   const signature = buildHmacSignature(
     secret,
     Number(timestamp),
     method,
     path,
-    body
+    bodyStr
   );
 
   return {
@@ -26,11 +36,23 @@ function getBuilderHeaders(method: string, path: string, body?: unknown) {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (setCors(req, res)) return;
+
+  const method = req.method || "GET";
+
+  if (!ALLOWED_METHODS.has(method)) {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   try {
     const pathParts = req.query.path;
     const upstreamPath = `/${Array.isArray(pathParts) ? pathParts.join("/") : pathParts || ""}`;
 
-    const method = req.method || "GET";
+    // Guard: reject path traversal and only allow safe characters
+    if (upstreamPath.includes("..") || !/^\/[\w\-/.?=&%+]*$/.test(upstreamPath)) {
+      return res.status(400).json({ error: "Invalid path" });
+    }
+
     const body = ["POST", "PUT", "PATCH"].includes(method) ? req.body : undefined;
 
     const builderHeaders = getBuilderHeaders(method, upstreamPath, body);
@@ -41,7 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         "Content-Type": "application/json",
         ...builderHeaders,
 
-        // forward user-auth headers only if needed by your flow
+        // Forward user-auth headers when provided by the client
         ...(req.headers.poly_address
           ? { POLY_ADDRESS: String(req.headers.poly_address) }
           : {}),
