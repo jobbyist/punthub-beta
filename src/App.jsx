@@ -6,39 +6,29 @@ import {
 import { useWallet } from "./hooks/useWallet.js";
 import { Analytics } from "@vercel/analytics/react";
 
-// ─── SVG LOGO ────────────────────────────────────────────────────────────────
-const PuntHubLogo = ({ size = 40, showText = true }) => (
-  <svg viewBox="0 0 200 52" height={size} style={{ display: "block" }} xmlns="http://www.w3.org/2000/svg">
-    {/* Icon - dartboard-style target */}
-    <circle cx="26" cy="26" r="24" fill="#4361EE" />
-    <circle cx="26" cy="26" r="16" fill="rgba(0,0,0,0.25)" />
-    <circle cx="26" cy="26" r="9" fill="rgba(255,255,255,0.2)" />
-    <circle cx="26" cy="26" r="4" fill="#fff" />
-    {/* Arrow */}
-    <line x1="38" y1="14" x2="26" y2="26" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
-    <polygon points="40,11 34,13 38,17" fill="#fff"/>
-    {showText && <>
-      {/* punt - medium */}
-      <text x="56" y="36" fontFamily="'Inter', sans-serif" fontWeight="600" fontSize="26" fill="#4361EE" letterSpacing="0.5">punt</text>
-      {/* hub - bold */}
-      <text x="101" y="36" fontFamily="'Inter', sans-serif" fontWeight="800" fontSize="26" fill="#0A0A2E" letterSpacing="0.5">hub</text>
-    </>}
-  </svg>
+// ─── LOGO ─────────────────────────────────────────────────────────────────────
+// Light-background variant (dark text on white/light backgrounds)
+// SVG viewBox: 0 28 603 155 → aspect ratio ≈ 3.89:1
+const LOGO_ASPECT = 603 / 155;
+const PuntHubLogo = ({ size = 40 }) => (
+  <img
+    src="/punthublogo.svg"
+    alt="PuntHub"
+    height={size}
+    width={Math.round(size * LOGO_ASPECT)}
+    style={{ display: "block" }}
+  />
 );
 
-const PuntHubLogoDark = ({ size = 40, showText = true }) => (
-  <svg viewBox="0 0 200 52" height={size} style={{ display: "block" }} xmlns="http://www.w3.org/2000/svg">
-    <circle cx="26" cy="26" r="24" fill="#4361EE" />
-    <circle cx="26" cy="26" r="16" fill="rgba(0,0,0,0.25)" />
-    <circle cx="26" cy="26" r="9" fill="rgba(255,255,255,0.2)" />
-    <circle cx="26" cy="26" r="4" fill="#fff" />
-    <line x1="38" y1="14" x2="26" y2="26" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
-    <polygon points="40,11 34,13 38,17" fill="#fff"/>
-    {showText && <>
-      <text x="56" y="36" fontFamily="'Inter', sans-serif" fontWeight="600" fontSize="26" fill="rgba(255,255,255,0.7)" letterSpacing="0.5">punt</text>
-      <text x="101" y="36" fontFamily="'Inter', sans-serif" fontWeight="800" fontSize="26" fill="#fff" letterSpacing="0.5">hub</text>
-    </>}
-  </svg>
+// Dark-background variant (light text on dark backgrounds)
+const PuntHubLogoDark = ({ size = 40 }) => (
+  <img
+    src="/punthublogo-dark.svg"
+    alt="PuntHub"
+    height={size}
+    width={Math.round(size * LOGO_ASPECT)}
+    style={{ display: "block" }}
+  />
 );
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
@@ -1356,7 +1346,7 @@ export default function PuntHub() {
 
       {/* Top Nav */}
       <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(10,10,15,0.96)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "0 16px", height: 58, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-        <PuntHubLogoDark size={36} showText={!isMobile} />
+        <PuntHubLogoDark size={isMobile ? 28 : 36} />
 
         {/* Desktop tabs */}
         {!isMobile && (

@@ -38,14 +38,14 @@ import {
  */
 export function useWallet() {
   const [isConnected, setIsConnected] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // true during initial session check
+  const [isLoading, setIsLoading] = useState(false); // only true during active auth operations
   const [email, setEmail] = useState(null);
   const [eoaAddress, setEoaAddress] = useState(null);
   const [safeAddress, setSafeAddress] = useState(null);
   const [clobClient, setClobClient] = useState(null);
   const [error, setError] = useState(null);
 
-  // ── Check existing session on mount ─────────────────────────────────────────
+  // ── Check existing session on mount (non-blocking background check) ──────────
   useEffect(() => {
     let cancelled = false;
     async function checkSession() {
@@ -65,8 +65,6 @@ export function useWallet() {
         if (!cancelled) {
           console.warn("[useWallet] Session check failed:", e);
         }
-      } finally {
-        if (!cancelled) setIsLoading(false);
       }
     }
     checkSession();
