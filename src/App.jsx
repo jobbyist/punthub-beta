@@ -253,7 +253,293 @@ const LANDING_STATS = [
   ["#1", "SA Prediction Hub"],
 ];
 
+// ─── PRELOADER ────────────────────────────────────────────────────────────────
+function Preloader({ onDone }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 2600);
+    return () => clearTimeout(t);
+  }, [onDone]);
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 9999,
+      background: "#fff",
+      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+      gap: 0,
+    }}>
+      <style>{`
+        @keyframes ph-bar { 0%{width:0%} 60%{width:75%} 85%{width:88%} 100%{width:100%} }
+        @keyframes ph-fade { 0%{opacity:0;transform:translateY(10px)} 100%{opacity:1;transform:translateY(0)} }
+        .ph-preloader-bar { animation: ph-bar 2.4s cubic-bezier(0.4,0,0.2,1) forwards; }
+        .ph-preloader-logo { animation: ph-fade 0.6s ease forwards; }
+        .ph-preloader-text { animation: ph-fade 0.6s 0.3s ease both; }
+      `}</style>
+
+      <div className="ph-preloader-logo" style={{ marginBottom: 28 }}>
+        <PuntHubLogo size={48} />
+      </div>
+
+      <p className="ph-preloader-text" style={{
+        fontFamily: "system-ui, -apple-system, sans-serif",
+        fontSize: 14, fontWeight: 500, color: "#5a5b7a",
+        marginBottom: 20, letterSpacing: 0.2,
+      }}>
+        Loading your experience…
+      </p>
+
+      <div style={{
+        width: 220, height: 4, background: "#e8e9f0", borderRadius: 2, overflow: "hidden",
+      }}>
+        <div className="ph-preloader-bar" style={{
+          height: "100%", background: "linear-gradient(90deg, #4361EE, #7B2FBE)",
+          borderRadius: 2,
+        }} />
+      </div>
+    </div>
+  );
+}
+
+// ─── FOUNDING MEMBERS MODAL ───────────────────────────────────────────────────
+const FOUNDING_PAGES = [
+  {
+    icon: "🌟",
+    title: "Become a Founding Member",
+    subtitle: "Join an exclusive group shaping the future of PuntHub",
+    body: "As one of our first members, you'll receive extraordinary benefits and help build the world's most rewarding prediction community. This is a limited-time opportunity — spots are filling fast.",
+    cta: "See Requirements →",
+  },
+  {
+    icon: "💰",
+    title: "Membership Requirements",
+    subtitle: "What you need to qualify",
+    items: [
+      { icon: "💳", text: "$100 Minimum First Deposit Required" },
+      { icon: "🎁", text: "50% First Deposit Bonus — get $50 free on your $100 deposit" },
+    ],
+    cta: "See Benefits →",
+  },
+  {
+    icon: "🏆",
+    title: "Founding Member Benefits",
+    subtitle: "Exclusive perks for life",
+    items: [
+      { icon: "🆓", text: "Zero Fees on First Withdrawal (ZAR Bank Transfer or USD PayPal)" },
+      { icon: "🚀", text: "Early Access To New Features before anyone else" },
+      { icon: "👕", text: "Free Premium PuntHub Merchandise" },
+      { icon: "🎉", text: "Sponsored Giveaways & Competitions" },
+      { icon: "💬", text: "Direct Access To Platform Developers To Suggest New Features" },
+    ],
+    cta: "Get Started →",
+  },
+];
+
+function FoundingMembersModal({ onProceed, onClose }) {
+  const [page, setPage] = useState(0);
+  const current = FOUNDING_PAGES[page];
+  const isLast = page === FOUNDING_PAGES.length - 1;
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 2000,
+      background: "rgba(10,10,46,0.72)", backdropFilter: "blur(8px)",
+      display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
+    }} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <style>{`
+        @keyframes fm-in { from{opacity:0;transform:scale(0.95) translateY(12px)} to{opacity:1;transform:scale(1) translateY(0)} }
+        .fm-modal { animation: fm-in 0.3s ease; }
+        @keyframes fm-slide { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+        .fm-page { animation: fm-slide 0.25s ease; }
+      `}</style>
+
+      <div className="fm-modal" style={{
+        background: "#fff", borderRadius: 20, padding: "32px 28px",
+        width: "100%", maxWidth: 480, position: "relative",
+        fontFamily: "system-ui, -apple-system, sans-serif",
+        boxShadow: "0 24px 80px rgba(67,97,238,0.25)",
+      }}>
+        {/* Close button */}
+        <button onClick={onClose} style={{
+          position: "absolute", top: 16, right: 16,
+          background: "none", border: "none", fontSize: 20, cursor: "pointer",
+          color: "#8889a8", lineHeight: 1, padding: 4,
+        }}>×</button>
+
+        {/* Progress dots */}
+        <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 28 }}>
+          {FOUNDING_PAGES.map((_, i) => (
+            <div key={i} style={{
+              width: i === page ? 28 : 8, height: 8, borderRadius: 4,
+              background: i <= page ? "#4361EE" : "#e8e9f0",
+              transition: "all 0.3s",
+            }} />
+          ))}
+        </div>
+
+        <div key={page} className="fm-page" style={{ textAlign: "center" }}>
+          <div style={{ fontSize: 52, marginBottom: 16 }}>{current.icon}</div>
+          <h2 style={{ fontSize: 24, fontWeight: 800, color: "#0A0A2E", marginBottom: 8, lineHeight: 1.2 }}>
+            {current.title}
+          </h2>
+          <p style={{ color: "#8889a8", fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
+            {current.subtitle}
+          </p>
+
+          {current.body && (
+            <p style={{
+              background: "rgba(67,97,238,0.06)", border: "1px solid rgba(67,97,238,0.15)",
+              borderRadius: 12, padding: "14px 16px",
+              color: "#5a5b7a", fontSize: 14, lineHeight: 1.7, marginBottom: 24, textAlign: "left",
+            }}>
+              {current.body}
+            </p>
+          )}
+
+          {current.items && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24, textAlign: "left" }}>
+              {current.items.map((item, i) => (
+                <div key={i} style={{
+                  display: "flex", alignItems: "flex-start", gap: 12,
+                  background: "#f9f9fc", border: "1px solid #e8e9f0",
+                  borderRadius: 10, padding: "12px 14px",
+                }}>
+                  <span style={{ fontSize: 20, flexShrink: 0 }}>{item.icon}</span>
+                  <span style={{ color: "#0A0A2E", fontSize: 14, fontWeight: 500, lineHeight: 1.4 }}>{item.text}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <button
+            onClick={() => isLast ? onProceed() : setPage(p => p + 1)}
+            style={{
+              width: "100%", background: "#4361EE", color: "#fff",
+              border: "none", borderRadius: 12, padding: "14px",
+              fontSize: 15, fontWeight: 700, cursor: "pointer", letterSpacing: 0.3,
+              boxShadow: "0 4px 16px rgba(67,97,238,0.3)",
+            }}
+          >
+            {current.cta}
+          </button>
+
+          {page > 0 && (
+            <button onClick={() => setPage(p => p - 1)} style={{
+              background: "none", border: "none", color: "#8889a8",
+              fontSize: 13, cursor: "pointer", marginTop: 12, fontWeight: 500,
+            }}>
+              ← Back
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── PARTNERS & SPONSORS ─────────────────────────────────────────────────────
+const PARTNER_ROTATION_MS = 5000;
+const OTP_CODE_LENGTH = 6;
+
+const PARTNERS = [
+  { name: "Betway",      icon: "🎰", color: "#00A651", bg: "rgba(0,166,81,0.08)",    border: "rgba(0,166,81,0.2)" },
+  { name: "Sportingbet", icon: "⚽", color: "#E30613", bg: "rgba(227,6,19,0.08)",   border: "rgba(227,6,19,0.2)" },
+  { name: "Hollywoodbets",icon:"🎬", color: "#6F2DA8", bg: "rgba(111,45,168,0.08)", border: "rgba(111,45,168,0.2)" },
+  { name: "Supabets",    icon: "🏆", color: "#F7941D", bg: "rgba(247,148,29,0.08)", border: "rgba(247,148,29,0.2)" },
+  { name: "Playabets",   icon: "🎮", color: "#0057A8", bg: "rgba(0,87,168,0.08)",   border: "rgba(0,87,168,0.2)" },
+  { name: "Binance",     icon: "₿",  color: "#F0B90B", bg: "rgba(240,185,11,0.08)", border: "rgba(240,185,11,0.2)" },
+];
+
+function PartnersSection() {
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setActiveIdx(i => (i + 1) % PARTNERS.length);
+    }, PARTNER_ROTATION_MS);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <section style={{ background: "#fff", padding: "56px 24px", borderTop: "1px solid #e8e9f0" }}>
+      <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 36 }}>
+          <p style={{ color: "#8889a8", fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>
+            Partners &amp; Sponsors
+          </p>
+          <h2 style={{ fontSize: 28, fontWeight: 800, color: "#0A0A2E", marginBottom: 8 }}>
+            Trusted By Industry Leaders
+          </h2>
+          <p style={{ color: "#5a5b7a", fontSize: 14 }}>
+            PuntHub partners with leading platforms to bring you the best prediction experience
+          </p>
+        </div>
+
+        {/* Featured rotating partner */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "center",
+          marginBottom: 32, minHeight: 80,
+        }}>
+          {PARTNERS.map((p, i) => (
+            <div
+              key={p.name}
+              style={{
+                display: i === activeIdx ? "flex" : "none",
+                alignItems: "center", gap: 16,
+                background: p.bg, border: `1px solid ${p.border}`,
+                borderRadius: 16, padding: "18px 32px",
+                animation: i === activeIdx ? `partner-slide ${PARTNER_ROTATION_MS / 1000}s ease` : "none",
+              }}
+            >
+              <span style={{ fontSize: 36 }}>{p.icon}</span>
+              <span style={{ fontSize: 22, fontWeight: 800, color: p.color }}>{p.name}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* All partner logos grid */}
+        <div style={{
+          display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center",
+        }}>
+          {PARTNERS.map((p, i) => (
+            <div
+              key={p.name}
+              onClick={() => setActiveIdx(i)}
+              style={{
+                display: "flex", alignItems: "center", gap: 8,
+                background: i === activeIdx ? p.bg : "#f9f9fc",
+                border: `1px solid ${i === activeIdx ? p.border : "#e8e9f0"}`,
+                borderRadius: 10, padding: "10px 18px", cursor: "pointer",
+                transition: "all 0.3s",
+              }}
+            >
+              <span style={{ fontSize: 18 }}>{p.icon}</span>
+              <span style={{
+                fontSize: 13, fontWeight: 700,
+                color: i === activeIdx ? p.color : "#5a5b7a",
+              }}>
+                {p.name}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <p style={{ textAlign: "center", color: "#8889a8", fontSize: 12, marginTop: 24 }}>
+          Interested in partnering with PuntHub?{" "}
+          <a href="mailto:partners@punthub.com" style={{ color: "#4361EE", textDecoration: "none", fontWeight: 600 }}>
+            Contact us →
+          </a>
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function LandingPage({ onStart }) {
+  const [showFoundingModal, setShowFoundingModal] = useState(false);
+
+  const handleJoin = () => setShowFoundingModal(true);
+  const handleModalProceed = () => { setShowFoundingModal(false); onStart(); };
+  const handleModalClose = () => setShowFoundingModal(false);
+
   return (
     <div style={{ minHeight: "100vh", minHeight: "100dvh", background: "#f4f5f7", fontFamily: "'Inter', sans-serif", color: "#0A0A2E", overflowX: "hidden" }}>
       <style>{`
@@ -264,6 +550,7 @@ function LandingPage({ onStart }) {
         .landing-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(67,97,238,0.12); transition: all 0.25s ease; }
         .landing-card { transition: all 0.25s ease; }
         .cta-btn:hover { background: #3451d1 !important; }
+        @keyframes partner-slide { 0%{opacity:0;transform:translateY(6px)} 10%{opacity:1;transform:translateY(0)} 85%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-6px)} }
       `}</style>
 
       {/* ── Navigation ── */}
@@ -272,7 +559,7 @@ function LandingPage({ onStart }) {
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <a href="#how-it-works" style={{ color: "#5a5b7a", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>How It Works</a>
           <a href="#features" style={{ color: "#5a5b7a", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Features</a>
-          <button onClick={onStart} style={{ background: "#0A0A2E", color: "#fff", border: "none", borderRadius: 8, padding: "9px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer", letterSpacing: 0.3 }}>
+          <button onClick={handleJoin} style={{ background: "#0A0A2E", color: "#fff", border: "none", borderRadius: 8, padding: "9px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer", letterSpacing: 0.3 }}>
             Sign Up Free →
           </button>
         </div>
@@ -292,7 +579,7 @@ function LandingPage({ onStart }) {
           PuntHub is South Africa's premier prediction hub — aggregate all betting platforms, compete on live prediction markets, and redeem PuntPoints for real prizes.
         </p>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <button onClick={onStart} className="cta-btn" style={{ background: "#4361EE", color: "#fff", border: "none", borderRadius: 10, padding: "15px 32px", fontSize: 16, fontWeight: 700, cursor: "pointer", letterSpacing: 0.3, boxShadow: "0 4px 20px rgba(67,97,238,0.35)" }}>
+          <button onClick={handleJoin} className="cta-btn" style={{ background: "#4361EE", color: "#fff", border: "none", borderRadius: 10, padding: "15px 32px", fontSize: 16, fontWeight: 700, cursor: "pointer", letterSpacing: 0.3, boxShadow: "0 4px 20px rgba(67,97,238,0.35)" }}>
             Join Now — Become A Founding Member
           </button>
           <a href="#how-it-works" style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#fff", color: "#0A0A2E", border: "1px solid #e0e1ea", borderRadius: 10, padding: "15px 28px", fontSize: 16, fontWeight: 600, cursor: "pointer", textDecoration: "none" }}>
@@ -351,7 +638,7 @@ function LandingPage({ onStart }) {
               { icon: "🛍️", label: "Rewards Store", badge: "FEATURED", badgeColor: "#F59E0B", desc: "Redeem points for gift cards, streaming, merch and more.", href: "#" },
               { icon: "🏅", label: "Leaderboard", badge: "LIVE", badgeColor: "#0CB96A", desc: "Compete with top predictors. Earn badges and bonus points.", href: "#" },
             ].map(card => (
-              <div key={card.label} className="landing-card" style={{ background: "#fff", border: "1px solid #e8e9f0", borderRadius: 14, padding: "22px 18px", cursor: "pointer" }} onClick={onStart}>
+              <div key={card.label} className="landing-card" style={{ background: "#fff", border: "1px solid #e8e9f0", borderRadius: 14, padding: "22px 18px", cursor: "pointer" }} onClick={handleJoin}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                   <span style={{ fontSize: 28 }}>{card.icon}</span>
                   <div>
@@ -379,11 +666,14 @@ function LandingPage({ onStart }) {
           <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 16, lineHeight: 1.6, marginBottom: 32 }}>
             Sign up as a founding member and receive 500 PuntPoints instantly. Start predicting and climb the leaderboard.
           </p>
-          <button onClick={onStart} className="cta-btn" style={{ background: "#4361EE", color: "#fff", border: "none", borderRadius: 10, padding: "16px 36px", fontSize: 17, fontWeight: 700, cursor: "pointer", letterSpacing: 0.3, boxShadow: "0 4px 24px rgba(67,97,238,0.4)" }}>
+          <button onClick={handleJoin} className="cta-btn" style={{ background: "#4361EE", color: "#fff", border: "none", borderRadius: 10, padding: "16px 36px", fontSize: 17, fontWeight: 700, cursor: "pointer", letterSpacing: 0.3, boxShadow: "0 4px 24px rgba(67,97,238,0.4)" }}>
             Get Started — It's Free
           </button>
         </div>
       </section>
+
+      {/* ── Partners & Sponsors ── */}
+      <PartnersSection />
 
       {/* ── Footer ── */}
       <footer style={{ background: "#080818", padding: "24px", textAlign: "center" }}>
@@ -394,6 +684,10 @@ function LandingPage({ onStart }) {
           © 2025 PuntHub · <a href="#" style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>Privacy</a> · <a href="#" style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>Terms</a>
         </p>
       </footer>
+
+      {showFoundingModal && (
+        <FoundingMembersModal onProceed={handleModalProceed} onClose={handleModalClose} />
+      )}
     </div>
   );
 }
@@ -433,8 +727,15 @@ function Onboarding({ onComplete }) {
 
   const handleMagicLogin = async () => {
     if (!email) return;
-    await wallet.connect(email);
-    // The useEffect above advances the step once wallet.isConnected is true
+    await wallet.sendOTP(email);
+    // wallet.otpSent will become true → OTP input shown via the useEffect/render below
+  };
+
+  const [otpCode, setOtpCode] = useState("");
+  const handleVerifyOTP = () => {
+    if (!otpCode) return;
+    wallet.verifyOTP(otpCode);
+    setOtpCode("");
   };
 
   // When Magic is not configured, fall back to the classic name+email form
@@ -488,19 +789,64 @@ function Onboarding({ onComplete }) {
                       <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>Enter your email — we'll send a one-time code. No password needed.</div>
                     </div>
                   </div>
-                  <div style={{ marginBottom: 16 }}>
-                    <label style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, display: "block", marginBottom: 7, letterSpacing: 1 }}>EMAIL ADDRESS</label>
-                    <input value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" type="email" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 14, fontFamily: "'Inter', sans-serif", outline: "none" }} />
-                  </div>
-                  {wallet.error && (
-                    <div style={{ background: "rgba(255,100,100,0.08)", border: "1px solid rgba(255,100,100,0.2)", borderRadius: 8, padding: "9px 12px", marginBottom: 12, color: "#FF6464", fontSize: 12 }}>{wallet.error}</div>
+
+                  {/* ── OTP sent: show code input ── */}
+                  {wallet.otpSent ? (
+                    <>
+                      <div style={{ background: "rgba(12,185,106,0.07)", border: "1px solid rgba(12,185,106,0.25)", borderRadius: 10, padding: "10px 14px", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 16 }}>📨</span>
+                        <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, lineHeight: 1.4 }}>
+                          OTP sent to <strong style={{ color: "#fff" }}>{email}</strong>. Check your inbox and enter the code below.
+                        </div>
+                      </div>
+                      <div style={{ marginBottom: 16 }}>
+                        <label style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, display: "block", marginBottom: 7, letterSpacing: 1 }}>ENTER YOUR CODE</label>
+                        <input
+                          value={otpCode}
+                          onChange={e => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, OTP_CODE_LENGTH))}
+                          onKeyDown={e => e.key === "Enter" && handleVerifyOTP()}
+                          placeholder={`${OTP_CODE_LENGTH}-digit code`}
+                          type="tel"
+                          inputMode="numeric"
+                          maxLength={OTP_CODE_LENGTH}
+                          autoFocus
+                          style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, padding: "13px 14px", color: "#fff", fontSize: 22, fontFamily: "monospace", outline: "none", letterSpacing: 6, textAlign: "center" }}
+                        />
+                      </div>
+                      {wallet.otpError && (
+                        <div style={{ background: "rgba(255,100,100,0.08)", border: "1px solid rgba(255,100,100,0.2)", borderRadius: 8, padding: "9px 12px", marginBottom: 12, color: "#FF6464", fontSize: 12 }}>{wallet.otpError}</div>
+                      )}
+                      {wallet.error && (
+                        <div style={{ background: "rgba(255,100,100,0.08)", border: "1px solid rgba(255,100,100,0.2)", borderRadius: 8, padding: "9px 12px", marginBottom: 12, color: "#FF6464", fontSize: 12 }}>{wallet.error}</div>
+                      )}
+                      <button
+                        onClick={handleVerifyOTP}
+                        disabled={otpCode.length < OTP_CODE_LENGTH}
+                        style={{ width: "100%", background: otpCode.length >= OTP_CODE_LENGTH ? "linear-gradient(135deg, #6400FF, #4361EE)" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: otpCode.length >= OTP_CODE_LENGTH ? "#fff" : "rgba(255,255,255,0.3)", fontWeight: 700, fontSize: 15, cursor: otpCode.length >= OTP_CODE_LENGTH ? "pointer" : "not-allowed", transition: "all 0.3s", letterSpacing: 0.5 }}>
+                        ✅ VERIFY CODE →
+                      </button>
+                      <button onClick={() => { wallet.cancelOTP(); setOtpCode(""); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 12, cursor: "pointer", marginTop: 10, width: "100%", padding: "6px" }}>
+                        ← Use a different email
+                      </button>
+                    </>
+                  ) : (
+                    /* ── Email input + send OTP ── */
+                    <>
+                      <div style={{ marginBottom: 16 }}>
+                        <label style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, display: "block", marginBottom: 7, letterSpacing: 1 }}>EMAIL ADDRESS</label>
+                        <input value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && !wallet.isLoading && email && handleMagicLogin()} placeholder="your@email.com" type="email" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "11px 14px", color: "#fff", fontSize: 14, fontFamily: "'Inter', sans-serif", outline: "none" }} />
+                      </div>
+                      {wallet.error && (
+                        <div style={{ background: "rgba(255,100,100,0.08)", border: "1px solid rgba(255,100,100,0.2)", borderRadius: 8, padding: "9px 12px", marginBottom: 12, color: "#FF6464", fontSize: 12 }}>{wallet.error}</div>
+                      )}
+                      <button
+                        onClick={handleMagicLogin}
+                        disabled={!email || wallet.isLoading}
+                        style={{ width: "100%", background: email && !wallet.isLoading ? "linear-gradient(135deg, #6400FF, #4361EE)" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: email && !wallet.isLoading ? "#fff" : "rgba(255,255,255,0.3)", fontWeight: 700, fontSize: 15, cursor: email && !wallet.isLoading ? "pointer" : "not-allowed", transition: "all 0.3s", letterSpacing: 0.5 }}>
+                        {wallet.isLoading ? "📨 Sending OTP…" : "✨ CONTINUE WITH MAGIC →"}
+                      </button>
+                    </>
                   )}
-                  <button
-                    onClick={handleMagicLogin}
-                    disabled={!email || wallet.isLoading}
-                    style={{ width: "100%", background: email && !wallet.isLoading ? "linear-gradient(135deg, #6400FF, #4361EE)" : "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "13px", color: email && !wallet.isLoading ? "#fff" : "rgba(255,255,255,0.3)", fontWeight: 700, fontSize: 15, cursor: email && !wallet.isLoading ? "pointer" : "not-allowed", transition: "all 0.3s", letterSpacing: 0.5 }}>
-                    {wallet.isLoading ? "✨ Sending OTP…" : "✨ CONTINUE WITH MAGIC →"}
-                  </button>
                 </>
               ) : (
                 /* ── Fallback: classic name + email form (no Magic key configured) ── */
@@ -1180,6 +1526,7 @@ function BetResult({ session, puntCoins, onRematch, onBack, scenarios }) {
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function PuntHub() {
+  const [loading, setLoading] = useState(true);
   const [screen, setScreen] = useState("landing");
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState("home");
@@ -1285,6 +1632,10 @@ export default function PuntHub() {
     }
   };
 
+  if (loading) {
+    return <Preloader onDone={() => setLoading(false)} />;
+  }
+
   if (screen === "landing") {
     return <LandingPage onStart={() => setScreen("onboarding")} />;
   }
@@ -1346,7 +1697,7 @@ export default function PuntHub() {
 
       {/* Top Nav */}
       <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(10,10,15,0.96)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "0 16px", height: 58, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-        <PuntHubLogoDark size={isMobile ? 28 : 36} />
+        <PuntHubLogoDark size={isMobile ? 20 : 26} />
 
         {/* Desktop tabs */}
         {!isMobile && (
