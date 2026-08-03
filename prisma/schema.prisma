@@ -1,0 +1,95 @@
+// Prisma schema for PuntHub betting prediction aggregator
+// Run: npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model - tracks punters and their points
+model User {
+  id              String       @id @default(cuid())
+  email           String       @unique
+  name            String
+  weeklyScore     Int          @default(0)  // Current weekly score
+  totalPuntpoints Int          @default(0)  // Total Puntpoints accumulated
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  // Relations
+  predictions     Prediction[]
+  
+  @@index([weeklyScore])
+  @@index([totalPuntpoints])
+  @@map("users")
+}
+
+// Fixture model - sports/event match details
+model Fixture {
+  id          String    @id @default(cuid())
+  title       String    // e.g. "Liverpool vs Manchester United"
+  description String?
+  category    String    // e.g. "sports", "politics", "crypto"
+  startTime   DateTime  // When the event/match starts
+  endTime     DateTime? // When betting closes (optional)
+  resultTime  DateTime? // When result is determined
+  result      String?   // Final result/outcome
+  status      String    @default("upcoming") // upcoming, live, completed, cancelled
+  metadata    Json?     // Additional data (teams, league, etc.)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  odds        Odds[]
+  predictions Prediction[]
+  
+  @@index([startTime])
+  @@index([status])
+  @@index([category])
+  @@map("fixtures")
+}
+
+// Odds model - betting prices from various platforms
+model Odds {
+  id           String   @id @default(cuid())
+  fixtureId    String
+  platform     String   // e.g. "Hollywoodbets", "Sportingbet", "Supabets"
+  outcome      String   // e.g. "Home Win", "Draw", "Away Win", "Over 2.5", etc.
+  price        Float    // Decimal odds (e.g. 2.50)
+  lastUpdated  DateTime @default(now())
+  createdAt    DateTime @default(now())
+  
+  // Relations
+  fixture      Fixture  @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  
+  @@index([fixtureId])
+  @@index([platform])
+  @@map("odds")
+}
+
+// Prediction model - user predictions on fixtures
+model Prediction {
+  id              String   @id @default(cuid())
+  userId          String
+  fixtureId       String
+  predictedOutcome String  // User's predicted result
+  stake           Int      @default(0) // Puntpoints wagered
+  pointsEarned    Int?     // Points earned if correct (calculated after result)
+  isCorrect       Boolean? // null = pending, true/false after result
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fixture         Fixture  @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, fixtureId]) // One prediction per user per fixture
+  @@index([userId])
+  @@index([fixtureId])
+  @@index([isCorrect])
+  @@map("predictions")
+}

@@ -10,6 +10,6 @@
     "outDir": ".vercel/output",
     "rootDir": "."
   },
-  "include": ["api/**/*.ts"],
+  "include": ["api/**/*.ts", "lib/**/*.ts", "prisma/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
